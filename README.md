@@ -1,6 +1,5 @@
 # CAN-LIB
 ## General CAN library for Purdue Solar Racing
----
 ### Supported Microcontrollers
  - STM32F3xx
  - STM32F4xx
@@ -11,7 +10,7 @@ Microcontroller type must be defined before including in source any library head
 
 Example:
 ```c
-#define BOARD_STM32F3
+#define BOARD_STM32F3 // Board Selection
 #include "can_lib.h"
 #include "can_types.h"
 ```
