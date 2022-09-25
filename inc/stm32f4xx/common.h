@@ -12,6 +12,7 @@
 #ifndef __STM32F4XX_COMMON_H
 #define __STM32F4XX_COMMON_H
 
+#define CAN 1
 #include "stm32f4xx_hal_can.h"
 
 #endif // __STM32F4XX_COMMON_H

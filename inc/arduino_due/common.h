@@ -13,11 +13,9 @@
 #define __ARDUINO_DUE_COMMON_H
 
 #ifndef __cplusplus
-#error "Arduino Due is only supported when compiled as C++" // Arduino Due requires C++ compilation
-#else 
+ #error "Arduino Due is only supported when compiled as C++" // Arduino Due CAN library requires C++ compilation
+#endif // __cplusplus
 
 #include "due_can.h"
-
-#endif // __cplusplus
 
 #endif // __ARDUINO_DUE_COMMON_H

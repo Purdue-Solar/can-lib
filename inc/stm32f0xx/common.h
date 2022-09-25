@@ -9,9 +9,9 @@
  * 
  */
 
-#ifndef __STM32F3XX_COMMON_H
-#define __STM32F3XX_COMMON_H
+#ifndef __STM32F0XX_COMMON_H
+#define __STM32F0XX_COMMON_H
 
-#include "stm32f3xx_hal_can.h"
+#include "stm32f0xx_hal_can.h"
 
-#endif // __STM32F3XX_COMMON_H
+#endif // __STM32F0XX_COMMON_H
