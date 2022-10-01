@@ -56,3 +56,6 @@ dkms.conf
 
 # External Libraries
 .external/
+
+# Build folder
+build/

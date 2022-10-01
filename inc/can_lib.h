@@ -24,6 +24,11 @@ extern "C"
 #endif
 
 /**
+ * @brief Default CAN baud rate of 100kb/s
+ */
+#define CAN_BAUD_RATE 100000
+
+/**
  * @brief Initialize CAN communication
  *
  * @param interface A handle to the CAN interface

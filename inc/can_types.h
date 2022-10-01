@@ -15,80 +15,76 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C"
+//
+// Common Type Definitions
+//
+
+/**
+ * @brief Represents a CAN payload in many ways
+ * @remark Assumes little endian architecture
+ */
+typedef union
 {
-#endif
-
-	//
-	// Common Type Definitions
-	//
-
-	/**
-	 * @brief Represents a CAN payload in many ways
-	 * @remark Assumes little endian architecture
-	 */
-	typedef union
+	uint64_t Value; // Payload reprented as a 64 bit number
+	struct
 	{
-		uint64_t Value; // Payload reprented as a 64 bit number
-		struct
-		{
-			uint32_t Lower;	// Lower 32 bits of the payload
-			uint32_t Upper;	// Upper 32 bits of the payload
-		};
-		uint16_t Words[4];	// Payload represented as an array of words
-		uint8_t Bytes[8];	// Payload represented as an array of bytes
-	} CAN_Payload;
+		uint32_t Lower;	// Lower 32 bits of the payload
+		uint32_t Upper;	// Upper 32 bits of the payload
+	};
+	uint16_t Words[4];	// Payload represented as an array of words
+	uint8_t Bytes[8];	// Payload represented as an array of bytes
+} CAN_Payload;
 
-	/**
-	 * @brief Represents a standard (non-extended) CAN Frame
-	 *
-	 */
-	typedef struct
-	{
-		uint32_t Id;	  // 11 bit CAN Identifier
-		bool RTR;		  // Remote Transmission Request
-		uint32_t Length;  // Length of payload in bytes
-		CAN_Payload Data; // CAN Payload
-	} CAN_Frame;
+/**
+ * @brief Represents a standard (non-extended) CAN Frame
+ *
+ */
+typedef struct
+{
+	uint32_t Id;	  // 11 bit CAN Identifier
+	bool RTR;		  // Remote Transmission Request
+	uint32_t Length;  // Length of payload in bytes
+	CAN_Payload Data; // CAN Payload
+} CAN_Frame;
 
-	/**
-	 * @brief CAN Configuration
-	 *
-	 */
-	typedef struct CAN_Config
-	{
-		bool AutoRetransmit;
-		uint16_t FilterIdLow;
-		uint16_t FilterIdHigh;
-	} CAN_Config;
+/**
+ * @brief CAN Configuration
+ *
+ */
+typedef struct CAN_Config
+{
+	uint32_t BaudRate;
+	bool AutoRetransmit;
+	uint16_t FilterIdLow;
+	uint16_t FilterIdHigh;
+} CAN_Config;
 
-	/**
-	 * @brief Defines a general callback for CAN
-	 *
-	 * @param frame The received CAN frame
-	 * @return void
-	 */
-	typedef void CAN_Callback(CAN_Frame *frame);
+/**
+ * @brief Defines a general callback for CAN
+ *
+ * @param frame The received CAN frame
+ * @return void
+ */
+typedef void CAN_Callback(CAN_Frame *frame);
 
-	/**
-	 * @brief Status of a CAN transmission
-	 *
-	 */
-	typedef enum
-	{
-		TransmitStatus_Unknown,
-		TransmitStatus_Success,
-		TransmitStatus_Error
-	} CAN_TransmitStatus;
+/**
+ * @brief Status of a CAN transmission
+ *
+ */
+typedef enum
+{
+	TransmitStatus_Unknown,
+	TransmitStatus_Success,
+	TransmitStatus_Error
+} CAN_TransmitStatus;
 
-	//
-	// Board Specific Definitions
-	//
+//
+// Board Specific Definitions
+//
 
-	//
-	// STM32 aliases
-	//
+//
+// STM32 aliases
+//
 
 #ifdef BOARD_STM32F
 
@@ -125,9 +121,5 @@ typedef struct
 #define CAN_Interface CANRaw
 
 #endif // BOARD_ARDUINO_DUE
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // __CAN_TYPES_H
