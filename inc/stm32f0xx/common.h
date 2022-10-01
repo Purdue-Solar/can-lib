@@ -1,7 +1,7 @@
 /**
  * @file common.h
  * @author Purdue Solar Racing (Aidan Orr)
- * @brief Common STM32 F3 CAN definitions
+ * @brief Common STM32 F0 CAN definitions
  * @version 0.1
  * @date 2022-09-12
  * 
