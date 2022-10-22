@@ -46,7 +46,7 @@ CAN_TransmitStatus CAN_Transmit(CAN_Interface* interface, CAN_Frame* frame)
 	txHeader.StdId = frame->Id;
 	txHeader.IDE = CAN_ID_STD;
 	txHeader.DLC = frame->Length;
-	txHeader.IsRTR = frame->IsRTR ? CAN_RTR_REMOTE : CAN_RTR_DATA;
+	txHeader.RTR = frame->IsRTR ? CAN_RTR_REMOTE : CAN_RTR_DATA;
 
 	HAL_StatusTypeDef status = HAL_CAN_AddTxMessage(interface->Handle, &txHeader, frame->Data.Bytes, &interface->Mailbox);
 	
@@ -79,7 +79,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 			{
 				frame.Id = rxHeader.StdId;
 				frame.Length = rxHeader.DLC;
-				frame.IsRTR = rxHeader.IsRTR == CAN_RTR_REMOTE;
+				frame.IsRTR = rxHeader.RTR == CAN_RTR_REMOTE;
 
 				(*_canRxCallback)(&frame);
 			}
