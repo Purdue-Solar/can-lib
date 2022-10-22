@@ -12,6 +12,8 @@
 #ifndef __STM32F3XX_COMMON_H
 #define __STM32F3XX_COMMON_H
 
+#include "stm32f3xx_hal.h"
+#include "stm32f3xx_hal_def.h"
 #include "stm32f3xx_hal_can.h"
 
 #endif // __STM32F3XX_COMMON_H
