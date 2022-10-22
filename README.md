@@ -1,12 +1,9 @@
 # CAN-LIB
 ## General CAN library for Purdue Solar Racing
 ### Supported Microcontrollers
- - STM32F0xx
- - STM32F1xx
- - STM32F2xx
- - STM32F3xx
- - STM32F4xx
+ - STM32F0-4
  - Arduino Due
+ - Arduino Nano
  - ~~Raspberry Pi Pico~~ **(Planned)**
 
 ### Including library
@@ -35,4 +32,5 @@ $ gcc <source-files> -DBOARD_STM32F=4 -o program
 | STM32F3xx			| `#define BOARD_STM32F 3`		|
 | STM32F4xx			| `#define BOARD_STM32F 4`		|
 | Arduino Due		| `#define BOARD_ARDUINO_DUE`	|
+| Arduino Nano		| `#define BOARD_ARDUINO_NANO`	|
 | Raspberry Pi Pico | `#define BOARD_RPI_PICO`		|

@@ -42,7 +42,8 @@ typedef union
 typedef struct
 {
 	uint32_t Id;	  // 11 bit CAN Identifier
-	bool RTR;		  // Remote Transmission Request
+	bool IsRTR;		  // Remote Transmission Request
+	bool IsExtended;
 	uint32_t Length;  // Length of payload in bytes
 	CAN_Payload Data; // CAN Payload
 } CAN_Frame;
@@ -110,16 +111,28 @@ typedef struct
 
 #endif // BOARD_STM32F
 
-	//
-	// Arduino Due aliases
-	//
+//
+// Arduino Due aliases
+//
 
 #ifdef BOARD_ARDUINO_DUE
 
-#include "arduino_due/common.h"
+#include "common.h"
 
 #define CAN_Interface CANRaw
 
 #endif // BOARD_ARDUINO_DUE
+
+//
+// Arduino Nano aliases
+//
+
+#if defined(BOARD_ARDUINO_UNO) || defined(BOARD_ARDUINO_MEGA)
+
+#include "common.h"
+
+#define CAN_Interface MCP2515
+
+#endif
 
 #endif // __CAN_TYPES_H

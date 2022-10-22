@@ -12,7 +12,7 @@
 #ifndef __CAN_LIB_H
 #define __CAN_LIB_H
 
-#if !(defined(BOARD_ARDUINO_DUE) || defined(BOARD_STM32F))
+#if !(defined(BOARD_ARDUINO_DUE) || defined(BOARD_STM32F) || defined(BOARD_ARDUINO_UNO))
 	#error "A microcontroller board is not selected"
 #endif
 

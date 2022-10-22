@@ -35,13 +35,13 @@ CAN_TransmitStatus CAN_Transmit(CAN_Interface* interface, CAN_Frame* frame)
 	dueFrame.id = frame->Id;
 	dueFrame.length = frame->Length;
 	dueFrame.data.value = frame->Data.Value;
-	dueFrame.rtr = frame->RTR ? 1 : 0;
+	dueFrame.rtr = frame->IsRTR ? 1 : 0;
 
 	bool status = can->sendFrame(dueFrame);
 	return status ? TransmitStatus_Success : TransmitStatus_Error;
 }
 
-CAN_Callback* _canRxCallback = NULL;
+static CAN_Callback* _canRxCallback = NULL;
 static void _canGeneralCallback(CAN_FRAME* dueFrame)
 {
 	CAN_Frame frame;
@@ -50,7 +50,7 @@ static void _canGeneralCallback(CAN_FRAME* dueFrame)
 	{
 		frame.Id = dueFrame->id;
 		frame.Length = dueFrame->length;
-		frame.RTR = dueFrame->rtr != 0;
+		frame.IsRTR = dueFrame->rtr != 0;
 		frame.Data.Value = dueFrame->data.value;
 
 		(*_canRxCallback)(&frame);
