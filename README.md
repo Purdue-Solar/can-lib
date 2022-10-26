@@ -3,7 +3,8 @@
 ### Supported Microcontrollers
  - STM32F0-4
  - Arduino Due
- - Arduino Nano
+ - Arduino Uno (with MCP2515)
+ - Arduino Mega (with MCP2515)
  - ~~Raspberry Pi Pico~~ **(Planned)**
 
 ### Including library
@@ -12,7 +13,6 @@ Microcontroller type must be defined before including any library headers.
 Example:
 ```c
 #define BOARD_STM32F 3 // Board Selection
-#include "can_types.h"
 #include "can_lib.h"
 ```
 
@@ -32,5 +32,6 @@ $ gcc <source-files> -DBOARD_STM32F=4 -o program
 | STM32F3xx			| `#define BOARD_STM32F 3`		|
 | STM32F4xx			| `#define BOARD_STM32F 4`		|
 | Arduino Due		| `#define BOARD_ARDUINO_DUE`	|
-| Arduino Nano		| `#define BOARD_ARDUINO_NANO`	|
+| Arduino Uno		| `#define BOARD_ARDUINO_UNO`	|
+| Arduino Mega		| `#define BOARD_ARDUINO_MEGA`	|
 | Raspberry Pi Pico | `#define BOARD_RPI_PICO`		|
