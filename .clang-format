@@ -1,0 +1,20 @@
+BasedOnStyle: Microsoft
+
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4
+ColumnLimit: 0
+
+PointerAlignment: Left
+
+AlignConsecutiveMacros: Consecutive
+AlignEscapedNewlines: Right
+AlignTrailingComments: true
+
+AlignOperands: Align
+AllowShortBlocksOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+BinPackParameters: false
+AlignArrayOfStructures: Right
+
+Cpp11BracedListStyle: false

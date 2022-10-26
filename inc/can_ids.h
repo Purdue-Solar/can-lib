@@ -12,8 +12,8 @@
 #ifndef __CAN_IDS_H
 #define __CAN_IDS_H
 
-#define CAN_SystemMask		0x7F0
-#define CAN_FunctionMask	0x00F
+#define CAN_SystemMask		0x1FFFFFF0
+#define CAN_FunctionMask	0x0000000F
 
 #define CAN_System_VCU		0x000
 // VCU Functions

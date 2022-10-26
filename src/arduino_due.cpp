@@ -1,12 +1,12 @@
 /**
  * @file arduino_due.c
  * @author Purdue Soalr Racing (Aidan Orr)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-09-27
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #if defined(BOARD_ARDUINO_DUE) || defined(ARDUINO_ARCH_SAM)
@@ -19,18 +19,27 @@
 #include "due_can.h"
 #include <stdbool.h>
 
-void CAN_Init(CAN_Interface* interface, CAN_Config config)
+namespace PSR
 {
-	CANRaw* can = interface;
-	can->begin(config.BaudRate);
-	can->watchForRange(config.FilterIdLow, config.FilterIdHigh);
+
+CANBus::CANBus(CANBus::Interface* interface, CANBus::Config* config)
+{
+	this->_interface = interface;
+	this->_config = *config;
+	this->_rxCallback = NULL;
 }
 
-CAN_TransmitStatus CAN_Transmit(CAN_Interface* interface, CAN_Frame* frame)
+void CANBus::Init()
+{
+	CANRaw* can = this->_interface;
+	can->begin(this->_config.BaudRate);
+}
+
+CANBus::TransmitStatus CANBus::Transmit(CANBus::Frame* frame)
 {
 	CAN_FRAME dueFrame;
 
-	CANRaw* can = interface;
+	CANRaw* can = this->_interface;
 
 	dueFrame.id = frame->Id;
 	dueFrame.length = frame->Length;
@@ -38,13 +47,15 @@ CAN_TransmitStatus CAN_Transmit(CAN_Interface* interface, CAN_Frame* frame)
 	dueFrame.rtr = frame->IsRTR ? 1 : 0;
 
 	bool status = can->sendFrame(dueFrame);
-	return status ? TransmitStatus_Success : TransmitStatus_Error;
+	return status ? CANBus::TransmitStatus::Success : CANBus::TransmitStatus::Error;
 }
 
-static CAN_Callback* _canRxCallback = NULL;
+static CANBus::Callback _canRxCallback = NULL;
+
 static void _canGeneralCallback(CAN_FRAME* dueFrame)
 {
-	CAN_Frame frame;
+	CANBus::Frame frame;
+
 
 	if (_canRxCallback != NULL)
 	{
@@ -57,16 +68,21 @@ static void _canGeneralCallback(CAN_FRAME* dueFrame)
 	}
 }
 
-void CAN_SetRxCallback(CAN_Interface* interface, CAN_Callback* callback)
+void CANBus::SetRxCallback(CANBus::Callback callback)
 {
-	CANRaw* can = interface;
-	_canRxCallback = callback;
+	PSR::_canRxCallback = callback;
+	this->_rxCallback = callback;
+
+	CANRaw* can = this->_interface;
 	can->setGeneralCallback(_canGeneralCallback);
 }
 
-void CAN_ClearRxCallback(CAN_Interface* interface)
+void CANBus::ClearRxCallback()
 {
-	_canRxCallback = NULL;
+	PSR::_canRxCallback = NULL;
+	this->_rxCallback = NULL;
 }
+
+} // namespace PSR
 
 #endif // BOARD_ARDUION_DUE
