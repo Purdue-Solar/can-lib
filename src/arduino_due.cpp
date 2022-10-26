@@ -22,31 +22,29 @@
 namespace PSR
 {
 
-CANBus::CANBus(CANBus::Interface* interface, CANBus::Config* config)
+CANBus::CANBus(CANBus::Interface& interface, const CANBus::Config& config)
+	: _interface(interface), _config(config), _rxCallback(NULL)
 {
-	this->_interface = interface;
-	this->_config = *config;
-	this->_rxCallback = NULL;
 }
 
 void CANBus::Init()
 {
-	CANRaw* can = this->_interface;
+	CANRaw& can = this->_interface;
 	can->begin(this->_config.BaudRate);
 }
 
-CANBus::TransmitStatus CANBus::Transmit(CANBus::Frame* frame)
+CANBus::TransmitStatus CANBus::Transmit(const CANBus::Frame& frame)
 {
 	CAN_FRAME dueFrame;
 
-	CANRaw* can = this->_interface;
+	CANRaw& can = this->_interface;
 
-	dueFrame.id = frame->Id;
-	dueFrame.length = frame->Length;
-	dueFrame.data.value = frame->Data.Value;
-	dueFrame.rtr = frame->IsRTR ? 1 : 0;
+	dueFrame.id = frame.Id;
+	dueFrame.length = frame.Length;
+	dueFrame.data.value = frame.Data.Value;
+	dueFrame.rtr = frame.IsRTR ? 1 : 0;
 
-	bool status = can->sendFrame(dueFrame);
+	bool status = can.sendFrame(dueFrame);
 	return status ? CANBus::TransmitStatus::Success : CANBus::TransmitStatus::Error;
 }
 
@@ -73,8 +71,8 @@ void CANBus::SetRxCallback(CANBus::Callback callback)
 	PSR::_canRxCallback = callback;
 	this->_rxCallback = callback;
 
-	CANRaw* can = this->_interface;
-	can->setGeneralCallback(_canGeneralCallback);
+	CANRaw& can = this->_interface;
+	can.setGeneralCallback(_canGeneralCallback);
 }
 
 void CANBus::ClearRxCallback()

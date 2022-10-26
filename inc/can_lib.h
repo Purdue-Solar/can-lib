@@ -67,8 +67,8 @@ namespace PSR
 class CANBus
 {
   public:
-	const uint32_t STD_ID_MASK = 0x7FF;
-	const uint32_t EXT_ID_MASK = 0x1FFFFFFF;
+	static const uint32_t STD_ID_MASK = 0x7FF;
+	static const uint32_t EXT_ID_MASK = 0x1FFFFFFF;
 
 #include "_can_interface_alias.h"
 
@@ -129,7 +129,7 @@ class CANBus
 	typedef void (*Callback)(Frame*);
 
   private:
-	Interface* _interface;
+	Interface& _interface;
 	Config _config;
 	Callback _rxCallback;
 
@@ -142,7 +142,7 @@ class CANBus
 	 * @param interface A handle to the CAN interface
 	 * @param config Configuration for CAN interface
 	 */
-	CANBus(Interface* interface, Config* config);
+	CANBus(Interface& interface, const Config& config);
 
 	/**
 	 * @brief Initialize CAN communication
@@ -155,7 +155,7 @@ class CANBus
 	 * @param frame The frame data to send
 	 * @return A status representing whether the frame was successfully sent
 	 */
-	TransmitStatus Transmit(Frame* frame);
+	TransmitStatus Transmit(const Frame& frame);
 
 	/**
 	 * @brief Set a callback that receives all available CAN frames

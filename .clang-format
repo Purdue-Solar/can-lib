@@ -10,6 +10,7 @@ PointerAlignment: Left
 AlignConsecutiveMacros: Consecutive
 AlignEscapedNewlines: Right
 AlignTrailingComments: true
+AlignConsecutiveAssignments: Consecutive
 
 AlignOperands: Align
 AllowShortBlocksOnASingleLine: Empty

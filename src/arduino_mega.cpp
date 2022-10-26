@@ -23,17 +23,15 @@
 namespace PSR
 {
 
-CANBus::CANBus(CANBus::Interface* interface, CANBus::Config* config)
+CANBus::CANBus(CANBus::Interface& interface, const CANBus::Config& config)
+	: _interface(interface), _config(config), _rxCallback(NULL)
 {
-	this->_interface = interface;
-	this->_config = *config;
-	this->_rxCallback = NULL;
 }
 
 void CANBus::Init()
 {
-	MCP2515* can = this->_interface;
-	can->reset();
+	MCP2515& can = this->_interface;
+	can.reset();
 	int speed;
 
 	switch (this->_config.BaudRate)
@@ -64,14 +62,14 @@ void CANBus::Init()
 		break;
 	}
 
-	can->setBitrate(speed);
-	can->setNormalMode();
+	can.setBitrate(speed);
+	can.setNormalMode();
 }
 
-CANBus::TransmitStatus CANBus::Transmit(CANBus::Frame* frame)
+CANBus::TransmitStatus CANBus::Transmit(const CANBus::Frame& frame)
 {
 	struct can_frame mcpFrame;
-	MCP2515* can = this->_interface;
+	MCP2515& can = this->_interface;
 
 	/*
 	 * Controller Area Network Identifier structure
@@ -81,21 +79,21 @@ CANBus::TransmitStatus CANBus::Transmit(CANBus::Frame* frame)
 	 * bit 30   : remote transmission request flag (1 = rtr frame)
 	 * bit 31   : frame format flag (0 = standard 11 bit, 1 = extended 29 bit)
 	 */
-	uint32_t isRTR = frame->IsRTR ? 1 : 0;
-	uint32_t isExtended = frame->IsExtended ? 1 : 0;
+	uint32_t isRTR = frame.IsRTR ? 1 : 0;
+	uint32_t isExtended = frame.IsExtended ? 1 : 0;
 
-	uint32_t id = (isExtended << 31) | (isRTR << 30) | frame->Id;
+	uint32_t id = (isExtended << 31) | (isRTR << 30) | frame.Id;
 
 	mcpFrame.can_id = id;
-	mcpFrame.can_dlc = frame->Length;
-	memcpy(mcpFrame.data, frame->Data.Bytes, frame->Length);
+	mcpFrame.can_dlc = frame.Length;
+	memcpy(mcpFrame.data, frame.Data.Bytes, frame.Length);
 
-	MCP2515::ERROR status = can->sendMessage(&mcpFrame);
+	MCP2515::ERROR status = can.sendMessage(&mcpFrame);
 
 	return status == MCP2515::ERROR_OK ? CANBus::TransmitStatus::Success : CANBus::TransmitStatus::Error;
 }
 
-static MCP2515* _callbackMCP;
+static CANBus::Interface* _callbackMCP;
 static CANBus::Callback _canRxCallback = NULL;
 static void _canGeneralCallback()
 {
@@ -125,9 +123,9 @@ static void _canGeneralCallback()
 void CANBus::SetRxCallback(CANBus::Callback callback)
 {
 	this->_rxCallback = callback;
-	MCP2515* can = this->_interface;
+	MCP2515& can = this->_interface;
 	
-	_callbackMCP = can;
+	_callbackMCP = &can;
 	_canRxCallback = callback;
 
 	attachInterrupt(0, _canGeneralCallback, FALLING);
