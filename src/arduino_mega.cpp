@@ -114,7 +114,7 @@ static void _canGeneralCallback()
 				frame.Length = mcpFrame.can_dlc;
 				memcpy(frame.Data.Bytes, mcpFrame.data, mcpFrame.can_dlc);
 
-				_canRxCallback(&frame);
+				_canRxCallback(frame);
 			}
 		}
 	}

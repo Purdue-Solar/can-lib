@@ -75,7 +75,7 @@ class VescCAN
 
   private:
 	CANBus& _can;
-	const uint8_t _controller;
+	const uint8_t _controllerId;
 
 	uint32_t CreateId(uint32_t packet);
 

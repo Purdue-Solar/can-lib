@@ -67,107 +67,106 @@ namespace PSR
 class CANBus
 {
   public:
-	static const uint32_t STD_ID_MASK = 0x7FF;
-	static const uint32_t EXT_ID_MASK = 0x1FFFFFFF;
+    static const uint32_t STD_ID_MASK = 0x7FF;
+    static const uint32_t EXT_ID_MASK = 0x1FFFFFFF;
 
 #include "_can_interface_alias.h"
 
-	/**
-	 * @brief Status of a CAN transmission
-	 *
-	 */
-	typedef enum
-	{
-		Unknown,
-		Success,
-		Error
-	} TransmitStatus;
+    /**
+     * @brief Status of a CAN transmission
+     *
+     */
+    typedef enum
+    {
+        Unknown,
+        Success,
+        Error
+    } TransmitStatus;
 
-	/**
-	 * @brief Represents a CAN payload in many ways
-	 * @remark Assumes little endian architecture
-	 */
-	typedef union {
-		uint64_t Value; // Payload reprented as a 64 bit number
-		struct
-		{
-			uint32_t Lower; // Lower 32 bits of the payload
-			uint32_t Upper; // Upper 32 bits of the payload
-		};
-		uint16_t Words[4]; // Payload represented as an array of words
-		uint8_t Bytes[8];  // Payload represented as an array of bytes
-	} Payload;
+    /**
+     * @brief Represents a CAN payload in many ways
+     * @remark Assumes little endian architecture
+     */
+    typedef union {
+        uint64_t Value; // Payload reprented as a 64 bit number
+        struct
+        {
+            uint32_t Lower; // Lower 32 bits of the payload
+            uint32_t Upper; // Upper 32 bits of the payload
+        };
+        uint32_t DoubleWords[2]; // Payload represented as an array of double words
+        uint16_t Words[4];       // Payload represented as an array of words
+        uint8_t Bytes[8];        // Payload represented as an array of bytes
+    } Payload;
 
-	/**
-	 * @brief Represents a CAN Frame
-	 */
-	typedef struct
-	{
-		uint32_t Id; // 11 or 29 bit CAN Identifier
-		bool IsRTR;	 // Remote Transmission Request
-		bool IsExtended;
-		uint32_t Length; // Length of payload in bytes
-		Payload Data;	 // CAN Payload
-	} Frame;
+    /**
+     * @brief Represents a CAN Frame
+     */
+    typedef struct
+    {
+        uint32_t Id; // 11 or 29 bit CAN Identifier
+        bool IsRTR;  // Remote Transmission Request
+        bool IsExtended;
+        uint32_t Length; // Length of payload in bytes
+        Payload Data;    // CAN Payload
+    } Frame;
 
-	/**
-	 * @brief CAN Configuration
-	 */
-	typedef struct
-	{
-		uint32_t BaudRate;
-		bool AutoRetransmit;
-		uint32_t FilterMask;
-	} Config;
+    /**
+     * @brief CAN Configuration
+     */
+    typedef struct
+    {
+        uint32_t BaudRate;
+        bool AutoRetransmit;
+        uint32_t FilterMask;
+    } Config;
 
-	/**
-	 * @brief Defines a general callback for CAN
-	 *
-	 * @param frame The received CAN frame
-	 * @return void
-	 */
-	typedef void (*Callback)(Frame*);
+    /**
+     * @brief Defines a general callback for CAN
+     *
+     * @param frame The received CAN frame
+     * @return void
+     */
+    typedef void (*Callback)(const Frame&);
 
   private:
-	Interface& _interface;
-	Config _config;
-	Callback _rxCallback;
-
-#include "_can_extra_fields.h"
+    Interface& _interface;
+    Config _config;
+    Callback _rxCallback;
 
   public:
-	/**
-	 * @brief Create a new CAN object
-	 *
-	 * @param interface A handle to the CAN interface
-	 * @param config Configuration for CAN interface
-	 */
-	CANBus(Interface& interface, const Config& config);
+    /**
+     * @brief Create a new CAN object
+     *
+     * @param interface A handle to the CAN interface
+     * @param config Configuration for CAN interface
+     */
+    CANBus(Interface& interface, const Config& config);
 
-	/**
-	 * @brief Initialize CAN communication
-	 */
-	void Init();
+    /**
+     * @brief Initialize CAN communication
+     */
+    void Init();
 
-	/**
-	 * @brief Transmit a CAN frame
-	 *
-	 * @param frame The frame data to send
-	 * @return A status representing whether the frame was successfully sent
-	 */
-	TransmitStatus Transmit(const Frame& frame);
+    /**
+     * @brief Transmit a CAN frame
+     *
+     * @param frame The frame data to send
+     * @return A status representing whether the frame was successfully sent
+     */
+    TransmitStatus Transmit(const Frame& frame);
 
-	/**
-	 * @brief Set a callback that receives all available CAN frames
-	 *
-	 * @param callback Function pointer to the callback handler
-	 */
-	void SetRxCallback(Callback callback);
+    /**
+     * @brief Set a callback that receives all available CAN frames
+     *
+     * @param callback Function pointer to the callback handler
+     */
+    void SetRxCallback(Callback callback);
 
-	/**
-	 * @brief Clear the callback for receiving CAN frames
-	 */
-	void ClearRxCallback();
+    /**
+     * @brief Clear the callback for receiving CAN frames
+     */
+    void ClearRxCallback();
 };
 
 } // namespace PSR

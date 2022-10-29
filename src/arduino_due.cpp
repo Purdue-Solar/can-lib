@@ -62,7 +62,7 @@ static void _canGeneralCallback(CAN_FRAME* dueFrame)
 		frame.IsRTR = dueFrame->rtr != 0;
 		frame.Data.Value = dueFrame->data.value;
 
-		(*_canRxCallback)(&frame);
+		(*_canRxCallback)(frame);
 	}
 }
 
