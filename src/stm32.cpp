@@ -160,7 +160,7 @@ extern "C"
                     frame.IsRTR      = rxHeader.RTR == CAN_RTR_REMOTE;
                     frame.IsExtended = isExtended;
 
-                    (*rxCallback)(&frame);
+                    (*rxCallback)(frame);
                 }
             }
         }
