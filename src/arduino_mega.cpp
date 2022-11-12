@@ -11,8 +11,8 @@
 
 #if defined(BOARD_ARDUINO_UNO) || defined(ARDUINO_ARCH_AVR)
 
-#ifndef BOARD_ARDUINO_UNO
-#define BOARD_ARDUINO_UNO
+#ifndef BOARD_ARDUINO_MEGA
+#define BOARD_ARDUINO_MEGA
 #endif
 
 #include "can_lib.h"

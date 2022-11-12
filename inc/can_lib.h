@@ -12,7 +12,7 @@
 #ifndef __CAN_LIB_H
 #define __CAN_LIB_H
 
-#if !(defined(BOARD_ARDUINO_DUE) || defined(BOARD_STM32F) || defined(BOARD_ARDUINO_UNO))
+#if !(defined(BOARD_ARDUINO_DUE) || defined(BOARD_STM32F) || defined(BOARD_ARDUINO_UNO) || defined(BOARD_ARDUINO_MEGA))
 #error "A microcontroller board is not selected"
 #endif
 
@@ -40,20 +40,16 @@
 
 // Arduino Due Includes
 #ifdef BOARD_ARDUINO_DUE
-
 #include "due_can.h"
-
 #endif // BOARD_ARDUINO_DUE
 
 // Arduino Uno/Mega Includes
-#if defined(BOARD_ARDUINO_UNO) || defined(BOARD_ARDUINO_MEGA)
-
 #ifdef BOARD_ARDUINO_UNO
 #include "uno_common.h"
-#else
-#include "mega_common.h"
 #endif
 
+#ifdef BOARD_ARDUINO_MEGA
+#include "mega_common.h"
 #endif
 
 /**
