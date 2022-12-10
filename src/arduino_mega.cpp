@@ -1,7 +1,7 @@
 /**
- * @file arduino_uno.cpp
+ * @file arduino_mega.cpp
  * @author Purdue Solar Racing (Aidan Orr)
- * @brief
+ * @brief Arduino Mega CAN implementation
  * @version 0.1
  * @date 2022-10-18
  *

@@ -1,7 +1,7 @@
 /**
  * @file arduino_due.c
  * @author Purdue Soalr Racing (Aidan Orr)
- * @brief
+ * @brief Arduino Due CAN implementation file
  * @version 0.1
  * @date 2022-09-27
  *

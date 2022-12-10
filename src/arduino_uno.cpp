@@ -1,7 +1,7 @@
 /**
  * @file arduino_uno.cpp
  * @author Purdue Solar Racing (Aidan Orr)
- * @brief
+ * @brief Arduino Uno CAN implementation file
  * @version 0.1
  * @date 2022-10-18
  *

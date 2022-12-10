@@ -1,7 +1,7 @@
 /**
  * @file common.h
  * @author Purdue Solar Racing (Aidan Orr)
- * @brief Common Arduino Nano CAN definitions
+ * @brief Common Arduino Uno CAN definitions
  * @version 0.1
  * @date 2022-10-01
  * 

@@ -1,7 +1,7 @@
 /**
- * @file stm32f4xx.c
+ * @file stm32f.c
  * @author Purdue Solar Racing (Aidan Orr)
- * @brief
+ * @brief STM32 CAN implementation file
  * @version 0.1
  * @date 2022-09-13
  *

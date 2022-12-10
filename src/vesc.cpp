@@ -1,15 +1,31 @@
+/**
+ * @file vesc.cpp
+ * @author Purdue Solar Racing (Aidan Orr)
+ * @brief VESC CAN implementation file
+ * @version 0.1
+ * @date 2022-12-10
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #include "vesc.h"
 #include "can_lib.h"
 
 namespace PSR
 {
 
-VescCAN::VescCAN(CANBus& can, const uint8_t controllerId)
+VescCAN::VescCAN(CANBus& can, uint8_t controllerId)
+    : _can(&can), _controllerId(controllerId)
+{
+}
+
+VescCAN::VescCAN(CANBus* can, uint8_t controllerId)
     : _can(can), _controllerId(controllerId)
 {
 }
 
-uint32_t VescCAN::CreateId(uint32_t packet)
+uint32_t VescCAN::CreateId(PacketId packet)
 {
     return this->_controllerId | (uint32_t)(packet) << 8;
 }
@@ -23,7 +39,6 @@ static int32_t ReverseEndiannessInt32(int32_t value)
 
     return (b3 << 24) | (b2 << 16) | (b1 << 8) | (b0 << 0);
 }
-
 
 static uint32_t ReverseEndiannessUInt32(uint32_t value)
 {
@@ -47,7 +62,7 @@ void VescCAN::SetDutyCycle(float duty)
     frame.Length     = frameSize;
     frame.Data.Lower = ReverseEndiannessInt32((int32_t)(duty * dutyMultiplier));
 
-    this->_can.Transmit(frame);
+    this->_can->Transmit(frame);
 }
 
 void VescCAN::SetCurrent(float current)
@@ -62,7 +77,7 @@ void VescCAN::SetCurrent(float current)
     frame.Length     = frameSize;
     frame.Data.Lower = ReverseEndiannessInt32((int32_t)(current * currentMultiplier));
 
-    this->_can.Transmit(frame);
+    this->_can->Transmit(frame);
 }
 
 void VescCAN::SetBrakeCurrent(float current)
@@ -77,7 +92,7 @@ void VescCAN::SetBrakeCurrent(float current)
     frame.Length     = frameSize;
     frame.Data.Lower = ReverseEndiannessInt32((int32_t)(current * currentMultiplier));
 
-    this->_can.Transmit(frame);
+    this->_can->Transmit(frame);
 }
 
 void VescCAN::SetRPM(float rpm)
@@ -92,7 +107,7 @@ void VescCAN::SetRPM(float rpm)
     frame.Length     = frameSize;
     frame.Data.Lower = ReverseEndiannessInt32((int32_t)(rpm * rpmMultiplier));
 
-    this->_can.Transmit(frame);
+    this->_can->Transmit(frame);
 }
 
 void VescCAN::SetPosition(float position)
@@ -107,7 +122,7 @@ void VescCAN::SetPosition(float position)
     frame.Length     = frameSize;
     frame.Data.Lower = ReverseEndiannessInt32((int32_t)(position * positionMultiplier));
 
-    this->_can.Transmit(frame);
+    this->_can->Transmit(frame);
 }
 
 void VescCAN::SetRelativeCurrent(float current)
@@ -122,7 +137,7 @@ void VescCAN::SetRelativeCurrent(float current)
     frame.Length     = frameSize;
     frame.Data.Lower = ReverseEndiannessInt32((int32_t)(current * currentMultiplier));
 
-    this->_can.Transmit(frame);
+    this->_can->Transmit(frame);
 }
 
 void VescCAN::SetRelativeBrakeCurrent(float current)
@@ -137,7 +152,7 @@ void VescCAN::SetRelativeBrakeCurrent(float current)
     frame.Length     = frameSize;
     frame.Data.Lower = ReverseEndiannessInt32((int32_t)(current * currentMultiplier));
 
-    this->_can.Transmit(frame);
+    this->_can->Transmit(frame);
 }
 
 void VescCAN::SetCurrentLimits(float lower, float upper)
@@ -153,7 +168,7 @@ void VescCAN::SetCurrentLimits(float lower, float upper)
     frame.Data.Lower = ReverseEndiannessInt32((int32_t)(lower * currentMultiplier));
     frame.Data.Upper = ReverseEndiannessInt32((int32_t)(upper * currentMultiplier));
 
-    this->_can.Transmit(frame);
+    this->_can->Transmit(frame);
 }
 
 void VescCAN::SetCurrentLimitsAndStore(float lower, float upper)
@@ -169,7 +184,7 @@ void VescCAN::SetCurrentLimitsAndStore(float lower, float upper)
     frame.Data.Lower = ReverseEndiannessInt32((int32_t)(lower * currentMultiplier));
     frame.Data.Upper = ReverseEndiannessInt32((int32_t)(upper * currentMultiplier));
 
-    this->_can.Transmit(frame);
+    this->_can->Transmit(frame);
 }
 
 void VescCAN::SetInputCurrentLimits(float lower, float upper)
@@ -179,13 +194,13 @@ void VescCAN::SetInputCurrentLimits(float lower, float upper)
 
     CANBus::Frame frame;
     frame.IsExtended = true;
-	frame.IsRTR    	 = false;
+    frame.IsRTR      = false;
     frame.Id         = CreateId(PacketId::CONF_CURRENT_LIMITS_IN);
     frame.Length     = frameSize;
     frame.Data.Lower = ReverseEndiannessInt32((int32_t)(lower * currentMultiplier));
     frame.Data.Upper = ReverseEndiannessInt32((int32_t)(upper * currentMultiplier));
 
-    this->_can.Transmit(frame);
+    this->_can->Transmit(frame);
 }
 
 void VescCAN::SetInputCurrentLimitsAndStore(float lower, float upper)
@@ -201,7 +216,9 @@ void VescCAN::SetInputCurrentLimitsAndStore(float lower, float upper)
     frame.Data.Lower = ReverseEndiannessInt32((int32_t)(lower * currentMultiplier));
     frame.Data.Upper = ReverseEndiannessInt32((int32_t)(upper * currentMultiplier));
 
-    this->_can.Transmit(frame);
+    this->_can->Transmit(frame);
 }
+
+// TODO: Add data receive functions
 
 } // namespace PSR
