@@ -16,7 +16,7 @@
 // STM32 aliases
 //
 
-#ifdef BOARD_STM32F
+#ifdef BOARD_STM32
 
 typedef CAN_HandleTypeDef Interface;
 
