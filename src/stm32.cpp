@@ -73,22 +73,19 @@ CANBus::TransmitStatus CANBus::Transmit(const Frame& frame)
 }
 
 // Callback CAN object storage
-constexpr int _storageSize = 4;
 
-static struct
+struct _callbackStoreStruct
 {
 	CANBus::Interface* interface;
 	CANBus::Callback callback;
-} _canRxCallbackCANObjects[_storageSize] = {
-	{nullptr, nullptr},
-	{nullptr, nullptr},
-	{nullptr, nullptr},
-	{nullptr, nullptr}
 };
+
+constexpr int _storageSize = 4;
+static _callbackStoreStruct _canRxCallbackCANObjects[_storageSize] = { 0 };
 
 bool CANBus::SetCallback(CANBus::Callback callback)
 {
-	if (this->_config.Mode != CANBus::ReceiveMode::Callback)
+	if (callback != nullptr && this->_config.Mode != CANBus::ReceiveMode::Callback)
 	{
 		return false;
 	}
@@ -97,7 +94,7 @@ bool CANBus::SetCallback(CANBus::Callback callback)
 
 	if (callback != nullptr)
 	{
-		// Fill first spot in storage with current CAN object pointer
+		// Fill first spot in storage with interface and callback.
 		int i;
 		for (i = 0; i < _storageSize; ++i)
 		{
@@ -107,6 +104,7 @@ bool CANBus::SetCallback(CANBus::Callback callback)
 				break;
 			}
 		}
+
 		if (i == _storageSize)
 		{
 			return false;
@@ -158,7 +156,7 @@ HAL_StatusTypeDef TranslateNextFrame(CAN_HandleTypeDef* hcan, CANBus::Frame& fra
 
 bool CANBus::Receive(CANBus::Frame& frame)
 {
-
+	return TranslateNextFrame(&this->_interface, frame) == HAL_OK;
 }
 
 } // namespace PSR
