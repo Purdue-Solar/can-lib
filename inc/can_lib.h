@@ -2,10 +2,9 @@
  * @file can_lib.h
  * @author Purdue Solar Racing (Aidan Orr)
  * @brief Multi-target CAN library for Purdue Solar Racing
- * @version 0.3
- * @date 2022-09-12
+ * @version 0.8
  *
- * @copyright Copyright (c) 2022
+ * @copyright Copyright (c) 2023
  *
  */
 
@@ -110,10 +109,10 @@ class CANBus
 	 */
 	struct Config
 	{
-		uint32_t BaudRate;		// Baud rate to use for transmitting and receiving. May not be used.
-		bool AutoRetransmit;	// Whether frames should be retransmitted on failure.
-		uint32_t FilterMask;	// Mask to use for filtering CAN ids.
-		ReceiveMode Mode;		// Receive mode to use. Supported modes: polling or callback based receive.
+		uint32_t BaudRate;   // Baud rate to use for transmitting and receiving. May not be used.
+		bool AutoRetransmit; // Whether frames should be retransmitted on failure.
+		uint32_t FilterMask; // Mask to use for filtering CAN ids.
+		ReceiveMode Mode;    // Receive mode to use. Supported modes: polling or callback based receive.
 	};
 
 	/**
@@ -136,7 +135,10 @@ class CANBus
 	 * @param interface A handle to the CAN interface
 	 * @param config Configuration for CAN interface
 	 */
-	CANBus(Interface& interface, const Config& config);
+	CANBus(Interface& interface, const Config& config)
+		: _interface(interface), _config(config), _rxCallback(nullptr)
+	{
+	}
 
 	/**
 	 * @brief Initialize CAN communication
@@ -161,7 +163,7 @@ class CANBus
 
 	/**
 	 * @brief Poll whether a new frame is available.
-	 * 
+	 *
 	 * @param frame The received frame. Only modified if the function returns true.
 	 * @return Whether a new frame is available
 	 */

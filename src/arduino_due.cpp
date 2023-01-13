@@ -2,10 +2,9 @@
  * @file arduino_due.c
  * @author Purdue Solar Racing (Aidan Orr)
  * @brief Arduino Due CAN implementation file
- * @version 0.1
- * @date 2022-09-27
+ * @version 0.9
  *
- * @copyright Copyright (c) 2022
+ * @copyright Copyright (c) 2023
  *
  */
 
@@ -22,15 +21,9 @@
 namespace PSR
 {
 
-CANBus::CANBus(CANBus::Interface& interface, const CANBus::Config& config)
-	: _interface(interface), _config(config), _rxCallback(NULL)
-{
-}
-
 void CANBus::Init()
 {
-	CANRaw& can = this->_interface;
-	can->begin(this->_config.BaudRate);
+	this->_interface.begin(this->_config.BaudRate);
 }
 
 CANBus::TransmitStatus CANBus::Transmit(const CANBus::Frame& frame)
@@ -39,46 +32,67 @@ CANBus::TransmitStatus CANBus::Transmit(const CANBus::Frame& frame)
 
 	CANRaw& can = this->_interface;
 
-	dueFrame.id = frame.Id;
-	dueFrame.length = frame.Length;
+	dueFrame.id         = frame.Id;
+	dueFrame.length     = frame.Length;
 	dueFrame.data.value = frame.Data.Value;
-	dueFrame.rtr = frame.IsRTR ? 1 : 0;
+	dueFrame.rtr        = frame.IsRTR ? 1 : 0;
 
 	bool status = can.sendFrame(dueFrame);
 	return status ? CANBus::TransmitStatus::Success : CANBus::TransmitStatus::Error;
 }
 
-static CANBus::Callback _canRxCallback = NULL;
-
-static void _canGeneralCallback(CAN_FRAME* dueFrame)
+static bool TranslateFrame(const CAN_FRAME& dueFrame, CANBus::Frame& frame)
 {
-	CANBus::Frame frame;
-
-
-	if (_canRxCallback != NULL)
-	{
-		frame.Id = dueFrame->id;
-		frame.Length = dueFrame->length;
-		frame.IsRTR = dueFrame->rtr != 0;
-		frame.Data.Value = dueFrame->data.value;
-
-		(*_canRxCallback)(frame);
-	}
+	frame.Id         = dueFrame.id;
+	frame.Length     = dueFrame.length;
+	frame.IsRTR      = dueFrame.rtr != 0;
+	frame.IsExtended = dueFrame.extended != 0;
+	frame.Data.Value = dueFrame.data.value;
 }
 
-void CANBus::SetRxCallback(CANBus::Callback callback)
+bool CANBus::SetCallback(CANBus::Callback callback)
 {
-	PSR::_canRxCallback = callback;
+	// Do not update if the object is not in callback mode
+	if (callback != nullptr && this->_config.Mode != CANBus::ReceiveMode::Callback)
+	{
+		return false;
+	}
+
 	this->_rxCallback = callback;
 
-	CANRaw& can = this->_interface;
-	can.setGeneralCallback(_canGeneralCallback);
+	if (callback != nullptr)
+	{
+		auto lambdaCallback = [this](CAN_FRAME* dueFrame) -> void
+		{
+			CANBus::Frame frame;
+			if (TranslateFrame(*dueFrame, frame))
+			{
+				this->_rxCallback(frame);
+			}
+		};
+
+		this->_interface.setGeneralCallback((void (*)(CAN_FRAME*)) & lambdaCallback);
+	}
+	else
+	{
+		this->_interface.setGeneralCallback(nullptr);
+	}
+
+	return true;
 }
 
-void CANBus::ClearRxCallback()
+bool CANBus::Receive(CANBus::Frame& frame)
 {
-	PSR::_canRxCallback = NULL;
-	this->_rxCallback = NULL;
+	if (this->_interface.rx_avail())
+	{
+		CAN_FRAME dueFrame;
+		this->_interface.read(dueFrame);
+		TranslateFrame(dueFrame, frame);
+		
+		return true;
+	}
+
+	return false;
 }
 
 } // namespace PSR

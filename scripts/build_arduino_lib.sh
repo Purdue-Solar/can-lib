@@ -25,6 +25,7 @@ cp $ROOT_DIR/inc/*.h $BOARD_DIR
 cp -r $ROOT_DIR/inc/$ARDUINO_BOARD/*.h $BOARD_DIR
 cp -r $ROOT_DIR/inc/$ARDUINO_BOARD/library.properties $BOARD_DIR
 cp -r $ROOT_DIR/arduino_lib/* $BOARD_DIR
+cp -r $ROOT_DIR/lib/**/inc/* $BOARD_DIR
 
 # Create zip file
 cd $BUILD_DIR

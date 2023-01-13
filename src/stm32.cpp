@@ -1,11 +1,10 @@
 /**
- * @file stm32f.c
+ * @file stm32.c
  * @author Purdue Solar Racing (Aidan Orr)
  * @brief STM32 CAN implementation file
- * @version 0.1
- * @date 2022-09-13
+ * @version 0.8
  *
- * @copyright Copyright (c) 2022
+ * @copyright Copyright (c) 2023
  *
  */
 
@@ -15,11 +14,6 @@
 
 namespace PSR
 {
-
-CANBus::CANBus(CANBus::Interface& interface, const CANBus::Config& config)
-	: _interface(interface), _config(config), _rxCallback(nullptr)
-{
-}
 
 void CANBus::Init()
 {
@@ -72,19 +66,38 @@ CANBus::TransmitStatus CANBus::Transmit(const Frame& frame)
 	}
 }
 
-// Callback CAN object storage
+// CAN callback object storage
+//
+//	Allows the storage of multiple callbacks, each one related to a
+//	single instance of a CANBus object
 
 struct _callbackStoreStruct
 {
+	CANBus* busObject;
 	CANBus::Interface* interface;
 	CANBus::Callback callback;
 };
 
-constexpr int _storageSize = 4;
-static _callbackStoreStruct _canRxCallbackCANObjects[_storageSize] = { 0 };
+static constexpr int _callbackStorageSize = 8;
+
+static struct _callbackStoreStruct _canRxCallbackStore[_callbackStorageSize] = { 0 };
+
+static bool IsCallbackStorageEmpty()
+{
+	for (int i = 0; i < _callbackStorageSize; ++i)
+	{
+		if (_canRxCallbackStore[i].interface != nullptr)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
 
 bool CANBus::SetCallback(CANBus::Callback callback)
 {
+	// Do not update if the object is not in callback mode
 	if (callback != nullptr && this->_config.Mode != CANBus::ReceiveMode::Callback)
 	{
 		return false;
@@ -94,54 +107,64 @@ bool CANBus::SetCallback(CANBus::Callback callback)
 
 	if (callback != nullptr)
 	{
-		// Fill first spot in storage with interface and callback.
+		// Fill first spot in storage with interface and callback
 		int i;
-		for (i = 0; i < _storageSize; ++i)
+		for (i = 0; i < _callbackStorageSize; ++i)
 		{
-			if (_canRxCallbackCANObjects[i].interface == nullptr)
+			if (_canRxCallbackStore[i].interface == nullptr)
 			{
-				_canRxCallbackCANObjects[i] = { &this->_interface, callback };
+				_canRxCallbackStore[i] = { this, &this->_interface, callback };
 				break;
 			}
 		}
 
-		if (i == _storageSize)
+		// Callback store is full
+		if (i == _callbackStorageSize)
 		{
 			return false;
 		}
 
 		// Activate interrupt handler
-		HAL_CAN_ActivateNotification(&this->_interface, CAN_IT_RX_FIFO0_MSG_PENDING);
-	}
+		}
 	else
 	{
 		// Remove all instances of current CAN object from storage
-		bool anyNotThis = false;
-		for (int i = 0; i < _storageSize; ++i)
+		for (int i = 0; i < _callbackStorageSize; ++i)
 		{
-			if (_canRxCallbackCANObjects[i].interface == &this->_interface)
+			struct _callbackStoreStruct obj = _canRxCallbackStore[i];
+			if (obj.busObject == this)
 			{
-				_canRxCallbackCANObjects[i] = { nullptr, nullptr };
-			}
-			else if (_canRxCallbackCANObjects[i].interface != nullptr)
-			{
-				anyNotThis = true;
+				_canRxCallbackStore[i] = { nullptr, nullptr, nullptr };
 			}
 		}
-
-		// Deactivate interrupt handler if there are no other handlers in the store.
-		if (!anyNotThis)
-			HAL_CAN_DeactivateNotification(&this->_interface, CAN_IT_RX_FIFO0_MSG_PENDING);
 	}
+
+	if (IsCallbackStorageEmpty())
+		HAL_CAN_DeactivateNotification(&this->_interface, CAN_IT_RX_FIFO0_MSG_PENDING);
+	else
+		HAL_CAN_ActivateNotification(&this->_interface, CAN_IT_RX_FIFO0_MSG_PENDING);
 
 	return true;
 }
 
-HAL_StatusTypeDef TranslateNextFrame(CAN_HandleTypeDef* hcan, CANBus::Frame& frame)
+/**
+ * @brief Try to receive a frame from the interface and update a reference to a frame
+ *
+ * @param hcan A pointer to the CAN interface
+ * @param frame The frame to be updated with the received frame
+ * @return bool Whether there was a frame available and it was successfully translated.
+ */
+static bool TranslateNextFrame(CAN_HandleTypeDef* hcan, CANBus::Frame& frame)
 {
+	if (HAL_CAN_GetRxFifoFillLevel(hcan, CAN_RX_FIFO0) == 0)
+	{
+		return false;
+	}
+
 	CAN_RxHeaderTypeDef rxHeader;
 	HAL_StatusTypeDef status = HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, frame.Data.Bytes);
 
+	// Only modify frame if the message is received properly
 	if (status == HAL_OK)
 	{
 		bool isExtended  = rxHeader.IDE == CAN_ID_EXT;
@@ -149,42 +172,51 @@ HAL_StatusTypeDef TranslateNextFrame(CAN_HandleTypeDef* hcan, CANBus::Frame& fra
 		frame.Length     = rxHeader.DLC;
 		frame.IsRTR      = rxHeader.RTR == CAN_RTR_REMOTE;
 		frame.IsExtended = isExtended;
+
+		return true;
 	}
 
-	return status;
+	return false;
 }
 
 bool CANBus::Receive(CANBus::Frame& frame)
 {
-	return TranslateNextFrame(&this->_interface, frame) == HAL_OK;
+	return TranslateNextFrame(&this->_interface, frame);
 }
 
 } // namespace PSR
 
 extern "C"
 {
+	// General CAN callback defined by HAL library
 	void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan)
 	{
 		PSR::CANBus::Frame frame;
-		PSR::CANBus::Callback rxCallback = nullptr;
 
-		for (int i = 0; i < PSR::_storageSize; ++i)
+		PSR::CANBus::Callback callbacks[PSR::_callbackStorageSize];
+		int callbackCount = 0;
+
+		// Scan callback storage for all instances of this interface.
+		for (int i = 0; i < PSR::_callbackStorageSize; ++i)
 		{
-			if (PSR::_canRxCallbackCANObjects[i].interface == hcan)
+			if (PSR::_canRxCallbackStore[i].interface == hcan)
 			{
-				rxCallback = PSR::_canRxCallbackCANObjects[i].callback;
-				break;
+				callbacks[callbackCount++] = PSR::_canRxCallbackStore[i].callback;
 			}
 		}
 
-		if (rxCallback != nullptr)
+		if (callbackCount > 0)
 		{
 			// Receive all available frames
 			while (HAL_CAN_GetRxFifoFillLevel(hcan, CAN_RX_FIFO0) > 0)
 			{
-				if (TranslateNextFrame(hcan, frame) == HAL_OK)
+				if (TranslateNextFrame(hcan, frame))
 				{
-					rxCallback(frame);
+					// Execute all callbacks that were found for each frame.
+					for (int i = 0; i < callbackCount; ++i)
+					{
+						callbacks[i](frame);
+					}
 				}
 			}
 		}
