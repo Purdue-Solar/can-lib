@@ -1,7 +1,7 @@
 # CAN-LIB
 ## General CAN library for Purdue Solar Racing
 ### Supported Microcontrollers
- - STM32F Series
+ - STM32
  - Arduino Due
  - Arduino Uno (with MCP2515)
  - Arduino Mega (with MCP2515)
@@ -22,8 +22,8 @@
  11. Select the `can-lib/src` folder and hit Okay.
  12. Repeat Step 11 for each build configuration.
  13. Under the `Symbols` tab, click `Add` to add a new compilation symbol.
- 14. Type `BOARD_STM32F` in the name field.
- 15. In the value field put the number of the STM32F board that is being used `0` for F0, `1` for F1, etc.
+ 14. Type `BOARD_STM32` in the name field.
+ 15. In the value field put the number of the STM32 board that is being used `f0` for F0, `f1` for F1, etc.
  16. Check both the `Add to all configurations` and `Add to all languages` checkboxes and hit OK.
  17. Close the Properties menu.
  18. You can now include the header files and compile the program with the library.
@@ -40,7 +40,7 @@
 
 Example:
 ```c
-#define BOARD_STM32F 3 // Board Selection
+#define BOARD_STM32 f3 // Board Selection
 // Or: #define BOARD_ARDUINO_UNO
 // Or: #define BOARD_ARDUINO_MEGA
 // Or: #define BOARD_ARDUINO_DUE
@@ -51,13 +51,13 @@ Example:
 
 Example:
 ```
-$ gcc <...> -DBOARD_STM32F=4 <...>
+$ gcc <...> -DBOARD_STM32=f4 <...>
 ```
 
 ## Microcontroller define statements
 | Microcontroller	| C/C++ Define Statement 		|
 | ----------------- | ----------------------------- |
-| STM32Fx			| `#define BOARD_STM32F x`		|
+| STM32Fx			| `#define BOARD_STM32 xx`		|
 | Arduino Due		| `#define BOARD_ARDUINO_DUE`	|
 | Arduino Uno		| `#define BOARD_ARDUINO_UNO`	|
 | Arduino Mega		| `#define BOARD_ARDUINO_MEGA`	|
