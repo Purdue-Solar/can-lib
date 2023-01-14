@@ -12,6 +12,8 @@
 #ifndef __CAN_STREAM_H
 #define __CAN_STREAM_H
 
+#ifdef BOARD_STM32
+
 #include "can_lib.h"
 #include <functional>
 #include <stdint.h>
@@ -99,5 +101,7 @@ class CANStream
 };
 
 } // namespace PSR
+
+#endif // BOARD_STM32
 
 #endif // end of include guard for can_stream.h
