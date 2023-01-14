@@ -20,7 +20,8 @@ rm -f $BUILD_DIR/$ARDUINO_BOARD-can-lib.zip
 mkdir -p $BOARD_DIR
 
 # Copy files in correct structure
-cp $ROOT_DIR/src/$ARDUINO_BOARD*.cpp -r $BOARD_DIR
+cp $ROOT_DIR/src/arduino/$ARDUINO_BOARD*.cpp -r $BOARD_DIR
+cp $ROOT_DIR/src/*.cpp -r $BOARD_DIR
 cp $ROOT_DIR/inc/*.h $BOARD_DIR
 cp -r $ROOT_DIR/inc/$ARDUINO_BOARD/*.h $BOARD_DIR
 cp -r $ROOT_DIR/inc/$ARDUINO_BOARD/library.properties $BOARD_DIR
