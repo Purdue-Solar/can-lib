@@ -11,6 +11,17 @@
 #ifndef __CAN_LIB_H
 #define __CAN_LIB_H
 
+// F*** Arduino
+#ifdef ARDUINO_ARCH_SAM
+#define BOARD_ARDUINO_DUE
+#endif
+
+// F*** Arduino More
+#ifdef ARDUINO_ARCH_AVR
+#define BOARD_ARDUINO_UNO
+#define BOARD_ARDUINO_MEGA
+#endif
+
 #if !(defined(BOARD_ARDUINO_DUE) || defined(BOARD_STM32) || defined(BOARD_ARDUINO_UNO) || defined(BOARD_ARDUINO_MEGA))
 #error "A microcontroller board is not selected"
 #endif

@@ -48,3 +48,6 @@
 
 # Arduino build script artifacts
 build/
+
+# Mac Moment
+**/.DS_Store
