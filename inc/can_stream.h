@@ -1,18 +1,17 @@
 /**
  * @file can_stream.h
- * @author your name (you@domain.com)
+ * @author Purdue Solar Racing (Aidan Orr)
  * @brief
  * @version 0.1
- * @date 2022-12-21
  *
- * @copyright Copyright (c) 2022
+ * @copyright Copyright (c) 2023
  *
  */
 
 #ifndef __CAN_STREAM_H
 #define __CAN_STREAM_H
 
-#ifdef BOARD_STM32
+#ifdef EXPERIMENTAL_CAN_STREAM
 
 #include "can_lib.h"
 #include <functional>
@@ -102,6 +101,6 @@ class CANStream
 
 } // namespace PSR
 
-#endif // BOARD_STM32
+#endif // EXPERIMENTAL_CAN_STREAM
 
 #endif // end of include guard for can_stream.h

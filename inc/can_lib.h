@@ -11,18 +11,17 @@
 #ifndef __CAN_LIB_H
 #define __CAN_LIB_H
 
-// F*** Arduino
+// Arduino is dumb
 #ifdef ARDUINO_ARCH_SAM
 #define BOARD_ARDUINO_DUE
 #endif
 
-// F*** Arduino More
+// Arduino is more dumb
 #ifdef ARDUINO_ARCH_AVR
-#define BOARD_ARDUINO_UNO
-#define BOARD_ARDUINO_MEGA
+#define BOARD_ARDUINO_AVR
 #endif
 
-#if !(defined(BOARD_ARDUINO_DUE) || defined(BOARD_STM32) || defined(BOARD_ARDUINO_UNO) || defined(BOARD_ARDUINO_MEGA))
+#if !(defined(BOARD_STM32) || defined(BOARD_ARDUINO_DUE) || defined(BOARD_ARDUINO_AVR))
 #error "A microcontroller board is not selected"
 #endif
 
@@ -43,12 +42,8 @@
 #endif // BOARD_ARDUINO_DUE
 
 // Arduino Uno/Mega Includes
-#ifdef BOARD_ARDUINO_UNO
-#include "uno_common.h"
-#endif
-
-#ifdef BOARD_ARDUINO_MEGA
-#include "mega_common.h"
+#ifdef BOARD_ARDUINO_AVR
+#include "mcp2515.h"
 #endif
 
 /**

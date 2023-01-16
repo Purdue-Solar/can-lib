@@ -23,9 +23,7 @@ mkdir -p $BOARD_DIR
 cp $ROOT_DIR/src/arduino/$ARDUINO_BOARD*.cpp $BOARD_DIR
 cp $ROOT_DIR/src/*.cpp $BOARD_DIR
 cp $ROOT_DIR/inc/*.h $BOARD_DIR
-cp $ROOT_DIR/inc/$ARDUINO_BOARD/*.h $BOARD_DIR
 cp $ROOT_DIR/inc/$ARDUINO_BOARD/library.properties $BOARD_DIR
-cp $ROOT_DIR/arduino_lib/* $BOARD_DIR
 cp $ROOT_DIR/lib/**/inc/* $BOARD_DIR
 
 # Create zip file

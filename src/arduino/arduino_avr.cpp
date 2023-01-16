@@ -1,17 +1,17 @@
 /**
- * @file arduino_uno.cpp
+ * @file arduino_avr.cpp
  * @author Purdue Solar Racing (Aidan Orr)
- * @brief Arduino Uno CAN implementation file
+ * @brief Arduino Uno/Mega CAN implementation file
  * @version 0.8
  *
  * @copyright Copyright (c) 2023
  *
  */
 
-#if defined(BOARD_ARDUINO_UNO) || defined(ARDUINO_ARCH_AVR)
+#if defined(BOARD_ARDUINO_AVR) || defined(ARDUINO_ARCH_AVR)
 
-#ifndef BOARD_ARDUINO_UNO
-#define BOARD_ARDUINO_UNO
+#ifndef BOARD_ARDUINO_AVR
+#define BOARD_ARDUINO_AVR
 #endif
 
 #include "bit_operations.h"

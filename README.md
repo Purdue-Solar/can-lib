@@ -31,7 +31,7 @@
 ## Arduino IDE
  1. Download and unzip repository to your local drive
  2. `cd` to repository root directory
- 3. Run `./scripts/build_arduino_lib.sh <board_name>` where `<board_name>` is the name of the Arduino board (`arduino_due`, `arduino_mega`, or `arduino_uno`)
+ 3. Run `./scripts/build_arduino_lib.sh <board_name>` where `<board_name>` is the name of the Arduino board (`arduino_due`, `arduino_avr` (for Arduino Uno/Mega))
  4. The output zip file is in the `build` folder
  5. Install the zip file in the Arduino IDE
 
@@ -41,8 +41,7 @@
 Example:
 ```c
 #define BOARD_STM32 f3 // Board Selection
-// Or: #define BOARD_ARDUINO_UNO
-// Or: #define BOARD_ARDUINO_MEGA
+// Or: #define BOARD_ARDUINO_AVR
 // Or: #define BOARD_ARDUINO_DUE
 #include "can_lib.h"
 ```
@@ -59,5 +58,5 @@ $ gcc <...> -DBOARD_STM32=f4 <...>
 | ----------------- | ----------------------------- |
 | STM32Fx			| `#define BOARD_STM32 xx`		|
 | Arduino Due		| `#define BOARD_ARDUINO_DUE`	|
-| Arduino Uno		| `#define BOARD_ARDUINO_UNO`	|
-| Arduino Mega		| `#define BOARD_ARDUINO_MEGA`	|
+| Arduino Uno		| `#define BOARD_ARDUINO_AVR`	|
+| Arduino Mega		| `#define BOARD_ARDUINO_AVR`	|

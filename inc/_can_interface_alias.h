@@ -1,16 +1,15 @@
 /**
- * @file can_interface_alias.h
+ * @file _can_interface_alias.h
  * @author Purdue Solar Racing (Aidan Orr)
  * @brief CAN Interface aliases
- * @version 0.2
- * @date 2022-09-12
+ * @version 0.8
  *
- * @copyright Copyright (c) 2022
+ * @copyright Copyright (c) 2023
  *
  */
 
-#ifndef __CAN_INTERFACE_ALIAS_H
-#define __CAN_INTERFACE_ALIAS_H
+#ifndef ___CAN_INTERFACE_ALIAS_H
+#define ___CAN_INTERFACE_ALIAS_H
 
 //
 // STM32 aliases
@@ -33,13 +32,13 @@ typedef CANRaw Interface;
 #endif // BOARD_ARDUINO_DUE
 
 //
-// Arduino Uno/Mega aliases
+// Arduino Uno/Mega (AVR) aliases
 //
 
-#if defined(BOARD_ARDUINO_UNO) || defined(BOARD_ARDUINO_MEGA)
+#ifdef BOARD_ARDUINO_AVR
 
 typedef MCP2515 Interface;
 
 #endif
 
-#endif // __CAN_INTERFACE_ALIAS_H
+#endif // end of include guard for _can_interface_alias.h
