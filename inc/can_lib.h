@@ -57,8 +57,8 @@ namespace PSR
 class CANBus
 {
   public:
-	static const uint32_t STD_ID_MASK = 0x7FF;
-	static const uint32_t EXT_ID_MASK = 0x1FFFFFFF;
+	static constexpr uint32_t STD_ID_MASK = 0x7FF;
+	static constexpr uint32_t EXT_ID_MASK = 0x1FFFFFFF;
 
 #include "_can_interface_alias.h"
 
@@ -117,7 +117,6 @@ class CANBus
 	{
 		uint32_t BaudRate;   // Baud rate to use for transmitting and receiving. May not be used.
 		bool AutoRetransmit; // Whether frames should be retransmitted on failure.
-		uint32_t FilterMask; // Mask to use for filtering CAN ids.
 		ReceiveMode Mode;    // Receive mode to use. Supported modes: polling or callback based receive.
 	};
 
@@ -155,15 +154,16 @@ class CANBus
 	 * @brief Transmit a CAN frame
 	 *
 	 * @param frame The frame data to send
-	 * @return A status representing whether the frame was successfully sent
+	 * @return TransmitStatus A status representing whether the frame was successfully sent
 	 */
 	TransmitStatus Transmit(const Frame& frame);
 
 	/**
 	 * @brief Set a callback that receives all available CAN frames.
 	 *
-	 * @param callback A function pointer to the callback to set. Passing a nullptr will clear the callback.
-	 * @return Whether the callback was set correctly. Returns false if the ReceiveMode is set to a value other than ReceiveMode::Callback
+	 * @param callback A function pointer to the callback to set. 
+	 * @note Passing a @c nullptr will clear the callback.
+	 * @return bool Whether the callback was set correctly. Returns false if the ReceiveMode is set to a value other than ReceiveMode::Callback
 	 */
 	bool SetCallback(Callback callback);
 
@@ -171,7 +171,7 @@ class CANBus
 	 * @brief Poll whether a new frame is available.
 	 *
 	 * @param frame The received frame. Only modified if the function returns true.
-	 * @return Whether a new frame is available
+	 * @return bool Whether a new frame is available
 	 */
 	bool Receive(Frame& frame);
 

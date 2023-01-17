@@ -20,8 +20,8 @@ void CANBus::Init()
 	CAN_FilterTypeDef filter;
 
 	// Configure filter ranges
-	filter.FilterMaskIdLow  = (uint16_t)this->_config.FilterMask;
-	filter.FilterMaskIdHigh = (uint16_t)(this->_config.FilterMask >> 16);
+	filter.FilterMaskIdLow  = 0;
+	filter.FilterMaskIdHigh = 0;
 	filter.FilterMode       = CAN_FILTERMODE_IDLIST;
 
 	// Configure filter banks
@@ -31,7 +31,9 @@ void CANBus::Init()
 	filter.FilterScale          = CAN_FILTERSCALE_32BIT;
 
 	// TODO: Fully understand filter setup
-	// HAL_CAN_ConfigFilter(this->_interface, &filter);
+	HAL_CAN_ConfigFilter(&this->_interface, &filter);
+	filter.FilterFIFOAssignment = CAN_RX_FIFO1;
+	HAL_CAN_ConfigFilter(&this->_interface, &filter);
 
 	this->_interface.Init.AutoRetransmission = this->_config.AutoRetransmit ? ENABLE : DISABLE;
 	HAL_CAN_Start(&this->_interface);
@@ -41,10 +43,8 @@ CANBus::TransmitStatus CANBus::Transmit(const Frame& frame)
 {
 	CAN_TxHeaderTypeDef txHeader;
 
-	while (HAL_CAN_IsTxMessagePending(&this->_interface, CAN_TX_MAILBOX0 | CAN_TX_MAILBOX1 | CAN_TX_MAILBOX2))
-	{
-	}
-	HAL_Delay(1);
+	while (HAL_CAN_GetTxMailboxesFreeLevel(&this->_interface) == 0)
+	{}
 
 	txHeader.ExtId = frame.IsExtended ? frame.Id & CANBus::EXT_ID_MASK : 0;
 	txHeader.StdId = frame.IsExtended ? 0 : frame.Id & CANBus::STD_ID_MASK;
@@ -123,9 +123,7 @@ bool CANBus::SetCallback(CANBus::Callback callback)
 		{
 			return false;
 		}
-
-		// Activate interrupt handler
-		}
+	}
 	else
 	{
 		// Remove all instances of current CAN object from storage
@@ -140,9 +138,15 @@ bool CANBus::SetCallback(CANBus::Callback callback)
 	}
 
 	if (IsCallbackStorageEmpty())
+	{
 		HAL_CAN_DeactivateNotification(&this->_interface, CAN_IT_RX_FIFO0_MSG_PENDING);
+		HAL_CAN_DeactivateNotification(&this->_interface, CAN_IT_RX_FIFO1_MSG_PENDING);
+	}
 	else
+	{
 		HAL_CAN_ActivateNotification(&this->_interface, CAN_IT_RX_FIFO0_MSG_PENDING);
+		HAL_CAN_ActivateNotification(&this->_interface, CAN_IT_RX_FIFO1_MSG_PENDING);
+	}
 
 	return true;
 }
@@ -152,17 +156,18 @@ bool CANBus::SetCallback(CANBus::Callback callback)
  *
  * @param hcan A pointer to the CAN interface
  * @param frame The frame to be updated with the received frame
+ * @param fifo The number of the FIFO buffer to receive from
  * @return bool Whether there was a frame available and it was successfully translated.
  */
-static bool TranslateNextFrame(CAN_HandleTypeDef* hcan, CANBus::Frame& frame)
+static bool TranslateNextFrame(CAN_HandleTypeDef* hcan, CANBus::Frame& frame, uint32_t fifo)
 {
-	if (HAL_CAN_GetRxFifoFillLevel(hcan, CAN_RX_FIFO0) == 0)
+	if (HAL_CAN_GetRxFifoFillLevel(hcan, fifo) == 0)
 	{
 		return false;
 	}
 
 	CAN_RxHeaderTypeDef rxHeader;
-	HAL_StatusTypeDef status = HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, frame.Data.Bytes);
+	HAL_StatusTypeDef status = HAL_CAN_GetRxMessage(hcan, fifo, &rxHeader, frame.Data.Bytes);
 
 	// Only modify frame if the message is received properly
 	if (status == HAL_OK)
@@ -181,45 +186,55 @@ static bool TranslateNextFrame(CAN_HandleTypeDef* hcan, CANBus::Frame& frame)
 
 bool CANBus::Receive(CANBus::Frame& frame)
 {
-	return TranslateNextFrame(&this->_interface, frame);
+	return TranslateNextFrame(&this->_interface, frame, CAN_RX_FIFO0) || TranslateNextFrame(&this->_interface, frame, CAN_RX_FIFO1);
+}
+
+static void _canGeneralCallback(CAN_HandleTypeDef* hcan, uint32_t fifo)
+{
+	PSR::CANBus::Frame frame;
+
+	PSR::CANBus::Callback callbacks[PSR::_callbackStorageSize];
+	int callbackCount = 0;
+
+	// Scan callback storage for all instances of this interface.
+	for (int i = 0; i < PSR::_callbackStorageSize; ++i)
+	{
+		if (PSR::_canRxCallbackStore[i].interface == hcan)
+		{
+			callbacks[callbackCount++] = PSR::_canRxCallbackStore[i].callback;
+		}
+	}
+
+	if (callbackCount > 0)
+	{
+		// Receive all available frames
+		while (HAL_CAN_GetRxFifoFillLevel(hcan, fifo) > 0)
+		{
+			if (TranslateNextFrame(hcan, frame, fifo))
+			{
+				// Execute all callbacks that were found for each frame.
+				for (int i = 0; i < callbackCount; ++i)
+				{
+					callbacks[i](frame);
+				}
+			}
+		}
+	}
 }
 
 } // namespace PSR
 
 extern "C"
 {
-	// General CAN callback defined by HAL library
+	// General CAN callbacks defined by HAL library
 	void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan)
 	{
-		PSR::CANBus::Frame frame;
+		PSR::_canGeneralCallback(hcan, CAN_RX_FIFO0);
+	}
 
-		PSR::CANBus::Callback callbacks[PSR::_callbackStorageSize];
-		int callbackCount = 0;
-
-		// Scan callback storage for all instances of this interface.
-		for (int i = 0; i < PSR::_callbackStorageSize; ++i)
-		{
-			if (PSR::_canRxCallbackStore[i].interface == hcan)
-			{
-				callbacks[callbackCount++] = PSR::_canRxCallbackStore[i].callback;
-			}
-		}
-
-		if (callbackCount > 0)
-		{
-			// Receive all available frames
-			while (HAL_CAN_GetRxFifoFillLevel(hcan, CAN_RX_FIFO0) > 0)
-			{
-				if (TranslateNextFrame(hcan, frame))
-				{
-					// Execute all callbacks that were found for each frame.
-					for (int i = 0; i < callbackCount; ++i)
-					{
-						callbacks[i](frame);
-					}
-				}
-			}
-		}
+	void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef* hcan)
+	{
+		PSR::_canGeneralCallback(hcan, CAN_RX_FIFO1);
 	}
 }
 

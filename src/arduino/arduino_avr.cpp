@@ -161,9 +161,9 @@ bool CANBus::SetCallback(CANBus::Callback callback)
 	}
 
 	if (IsCallbackStorageEmpty())
-		detachInterrupt(digitalPinToInterrupt(2));
+		detachInterrupt(0);
 	else
-		attachInterrupt(digitalPinToInterrupt(2), _canGeneralCallback, FALLING);
+		attachInterrupt(0, _canGeneralCallback, FALLING);
 
 	return true;
 }

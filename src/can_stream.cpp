@@ -9,6 +9,8 @@
  *
  */
 
+#ifdef EXPERIMENTAL_CAN_STREAM
+
 #ifdef BOARD_STM32
 
 #include "can_stream.h"
@@ -98,3 +100,5 @@ void CANStream::RetrieveResource(
 } // namespace PSR
 
 #endif // BOARD_STM32
+
+#endif // EXPERIMENTAL_CAN_STREAM
