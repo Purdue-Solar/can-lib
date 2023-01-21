@@ -12,7 +12,7 @@
 #define __BMS_H
 
 #include "can_lib.h"
-#include <stdint.h>
+#include <cstdint>
 
 namespace PSR
 {

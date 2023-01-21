@@ -15,7 +15,7 @@
 
 #include "can_lib.h"
 #include <functional>
-#include <stdint.h>
+#include <cstdint>
 #include <vector>
 
 #ifdef BOARD_STM32

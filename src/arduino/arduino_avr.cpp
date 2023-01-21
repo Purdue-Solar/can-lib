@@ -17,8 +17,8 @@
 #include "bit_operations.h"
 #include "can_lib.h"
 #include "mcp2515.h"
-#include <stdbool.h>
-#include <string.h>
+#include <cstdbool>
+#include <cstring>
 
 namespace PSR
 {

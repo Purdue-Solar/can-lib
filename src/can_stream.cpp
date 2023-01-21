@@ -14,8 +14,8 @@
 
 #include "can_stream.h"
 #include "can_lib.h"
-#include <string.h>
 
+#include <cstring>
 #include <functional>
 #include <vector>
 

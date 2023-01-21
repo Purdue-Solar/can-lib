@@ -25,8 +25,8 @@
 #error "A microcontroller board is not selected"
 #endif
 
-#include <stdbool.h>
-#include <stdint.h>
+#include <cstdbool>
+#include <cstdint>
 
 // STM32 Includes
 #ifdef BOARD_STM32
