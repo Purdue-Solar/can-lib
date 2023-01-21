@@ -3,9 +3,8 @@
  * @author Purdue Solar Racing (Aidan Orr)
  * @brief Implementation file for streaming data over CAN
  * @version 0.1
- * @date 2022-12-22
  *
- * @copyright Copyright (c) 2022
+ * @copyright Copyright (c) 2023
  *
  */
 
