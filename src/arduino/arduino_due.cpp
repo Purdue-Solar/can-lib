@@ -24,6 +24,7 @@ namespace PSR
 void CANBus::Init()
 {
 	this->_interface.begin(this->_config.BaudRate);
+	this->_interface.watchFor();
 }
 
 CANBus::TransmitStatus CANBus::Transmit(const CANBus::Frame& frame)

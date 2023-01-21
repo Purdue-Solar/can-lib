@@ -23,7 +23,7 @@ class BmsCAN
 	enum struct PacketId : uint32_t
 	{
 		TEMPERATURE_AND_STATE = 0,
-		CURRENT_AND_VOLTAGE = 1
+		CURRENT_AND_VOLTAGE = 1,
 		UNKNOWN
 	};
 
