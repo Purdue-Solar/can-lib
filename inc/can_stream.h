@@ -23,15 +23,6 @@
 #include STM32_INCLUDE(BOARD_STM32, hal_crc.h)
 #endif
 
-#ifdef BOARD_ARDUINO_UNO
-#endif
-
-#ifdef BOARD_ARDUINO_DUE
-#endif
-
-#ifdef BOARD_ARDUINO_MEGA
-#endif
-
 namespace PSR
 {
 

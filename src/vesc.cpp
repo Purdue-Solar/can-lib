@@ -184,8 +184,6 @@ void VescCAN::SetInputCurrentLimitsAndStore(float lower, float upper)
 	this->_can.Transmit(frame);
 }
 
-// TODO: Add data receive functions
-
 bool VescCAN::IsVescFrame(const CANBus::Frame& frame, PacketId& packetType)
 {
 	uint32_t id = bitExtract(frame.Id, 0, 8);
@@ -206,9 +204,9 @@ VescCAN::StatusMessage1 VescCAN::DecodeStatusMessage1(const CANBus::Frame& frame
 
 	VescCAN::StatusMessage1 status;
 
-	status.RPM                  = reverseEndianness((int32_t)frame.Data.Lower);
-	status.TotalCurrentConsumed = reverseEndianness((int16_t)frame.Data.Words[2]) / currentMultiplier;
-	status.DutyCycle            = reverseEndianness((int16_t)frame.Data.Words[3]) / dutyCycleMultiplier;
+	status.RPM                  = (int32_t)reverseEndianness(frame.Data.Lower);
+	status.TotalCurrentConsumed = (int16_t)reverseEndianness(frame.Data.Words[2]) / currentMultiplier;
+	status.DutyCycle            = (int16_t)reverseEndianness(frame.Data.Words[3]) / dutyCycleMultiplier;
 
 	return status;
 }
@@ -231,8 +229,8 @@ VescCAN::StatusMessage3 VescCAN::DecodeStatusMessage3(const CANBus::Frame& frame
 
 	VescCAN::StatusMessage3 status;
 
-	status.WattHoursConsumed     = reverseEndianness((int32_t)frame.Data.Lower) / wattHoursMultiplier;
-	status.WattHoursRegenerative = reverseEndianness((int32_t)frame.Data.Upper) / wattHoursMultiplier;
+	status.WattHoursConsumed      = reverseEndianness((int32_t)frame.Data.Lower) / wattHoursMultiplier;
+	status.WattHoursRegeneratixve = reverseEndianness((int32_t)frame.Data.Upper) / wattHoursMultiplier;
 
 	return status;
 }
