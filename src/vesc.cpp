@@ -217,8 +217,8 @@ VescCAN::StatusMessage2 VescCAN::DecodeStatusMessage2(const CANBus::Frame& frame
 
 	VescCAN::StatusMessage2 status;
 
-	status.AmpHoursConsumed     = reverseEndianness((int32_t)frame.Data.Lower) / ampHoursMultiplier;
-	status.AmpHoursRegenerative = reverseEndianness((int32_t)frame.Data.Upper) / ampHoursMultiplier;
+	status.AmpHoursConsumed     = (int32_t)reverseEndianness(frame.Data.Lower) / ampHoursMultiplier;
+	status.AmpHoursRegenerative = (int32_t)reverseEndianness(frame.Data.Upper) / ampHoursMultiplier;
 
 	return status;
 }
@@ -229,8 +229,8 @@ VescCAN::StatusMessage3 VescCAN::DecodeStatusMessage3(const CANBus::Frame& frame
 
 	VescCAN::StatusMessage3 status;
 
-	status.WattHoursConsumed      = reverseEndianness((int32_t)frame.Data.Lower) / wattHoursMultiplier;
-	status.WattHoursRegeneratixve = reverseEndianness((int32_t)frame.Data.Upper) / wattHoursMultiplier;
+	status.WattHoursConsumed     = (int32_t)reverseEndianness(frame.Data.Lower) / wattHoursMultiplier;
+	status.WattHoursRegenerative = (int32_t)reverseEndianness(frame.Data.Upper) / wattHoursMultiplier;
 
 	return status;
 }
@@ -242,10 +242,10 @@ VescCAN::StatusMessage4 VescCAN::DecodeStatusMessage4(const CANBus::Frame& frame
 
 	VescCAN::StatusMessage4 status;
 
-	status.MosfetTemperature = reverseEndianness((int16_t)frame.Data.Words[0]) / temperatureMultiplier;
-	status.MotorTemperature  = reverseEndianness((int16_t)frame.Data.Words[1]) / temperatureMultiplier;
-	status.TotalInputCurrent = reverseEndianness((int16_t)frame.Data.Words[2]) / currentMultiplier;
-	status.PidPosition       = reverseEndianness((int16_t)frame.Data.Words[3]);
+	status.MosfetTemperature = (int16_t)reverseEndianness(frame.Data.Words[0]) / temperatureMultiplier;
+	status.MotorTemperature  = (int16_t)reverseEndianness(frame.Data.Words[1]) / temperatureMultiplier;
+	status.TotalInputCurrent = (int16_t)reverseEndianness(frame.Data.Words[2]) / currentMultiplier;
+	status.PidPosition       = (int16_t)reverseEndianness(frame.Data.Words[3]);
 
 	return status;
 }
@@ -256,8 +256,8 @@ VescCAN::StatusMessage5 VescCAN::DecodeStatusMessage5(const CANBus::Frame& frame
 
 	VescCAN::StatusMessage5 status;
 
-	status.Tachometer   = reverseEndianness((int32_t)frame.Data.Lower);
-	status.InputVoltage = reverseEndianness((int16_t)frame.Data.Words[2]) / voltageMultiplier;
+	status.Tachometer   = (int32_t)reverseEndianness(frame.Data.Lower);
+	status.InputVoltage = (int16_t)reverseEndianness(frame.Data.Words[2]) / voltageMultiplier;
 
 	return status;
 }
