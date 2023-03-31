@@ -12,6 +12,7 @@
 #define __VESC_H
 
 #include "can_lib.h"
+#include "fixed_point.h"
 #include <cstdint>
 
 namespace PSR
@@ -117,11 +118,25 @@ class VescCAN
 	void SetDutyCycle(float duty);
 
 	/**
+	 * @brief Set the motor duty cycle
+	 *
+	 * @param duty The duty cycle to set (-1...1)
+	 */
+	void SetDutyCycle(FP16_16 duty);
+
+	/**
 	 * @brief Set the motor current
 	 *
 	 * @param current The current to set (Amps)
 	 */
 	void SetCurrent(float current);
+
+	/**
+	 * @brief Set the motor current
+	 *
+	 * @param current The current to set (Amps)
+	 */
+	void SetCurrent(FP16_16 current);
 
 	/**
 	 * @brief Set the motor braking current
@@ -131,11 +146,18 @@ class VescCAN
 	void SetBrakeCurrent(float current);
 
 	/**
+	 * @brief Set the motor braking current
+	 *
+	 * @param current The braking current to set (Amps)
+	 */
+	void SetBrakeCurrent(FP16_16 current);
+
+	/**
 	 * @brief Set the motor RPM
 	 *
 	 * @param rpm The RPM to set
 	 */
-	void SetRPM(float rpm);
+	void SetRPM(int32_t rpm);
 
 	/**
 	 * @brief Set the motor position
@@ -145,6 +167,13 @@ class VescCAN
 	void SetPosition(float position);
 
 	/**
+	 * @brief Set the motor position
+	 *
+	 * @param position The position to set
+	 */
+	void SetPosition(FP16_16 position);
+
+	/**
 	 * @brief Set current relative to upper and lower current limits
 	 *
 	 * @param current The current relative to the limits (-1...1)
@@ -152,11 +181,25 @@ class VescCAN
 	void SetRelativeCurrent(float current);
 
 	/**
+	 * @brief Set current relative to upper and lower current limits
+	 *
+	 * @param current The current relative to the limits (-1...1)
+	 */
+	void SetRelativeCurrent(FP16_16 current);
+
+	/**
 	 * @brief Set brake current relative to upper and lower current limits
 	 *
 	 * @param current The brake current relative to the limits (-1...1)
 	 */
 	void SetRelativeBrakeCurrent(float current);
+
+	/**
+	 * @brief Set brake current relative to upper and lower current limits
+	 *
+	 * @param current The brake current relative to the limits (-1...1)
+	 */
+	void SetRelativeBrakeCurrent(FP16_16 current);
 
 	/**
 	 * @brief Set the upper and lower current limits
@@ -167,6 +210,14 @@ class VescCAN
 	void SetCurrentLimits(float lower, float upper);
 
 	/**
+	 * @brief Set the upper and lower current limits
+	 *
+	 * @param lower The lower current limit (Amps)
+	 * @param upper The upper current limit (Amps)
+	 */
+	void SetCurrentLimits(FP16_16 lower, FP16_16 upper);
+
+	/**
 	 * @brief Set the upper and lower current limits and store them in the EEPROM
 	 *
 	 * @param lower The lower current limit (Amps)
@@ -175,13 +226,29 @@ class VescCAN
 	void SetCurrentLimitsAndStore(float lower, float upper);
 
 	/**
+	 * @brief Set the upper and lower current limits and store them in the EEPROM
+	 *
+	 * @param lower The lower current limit (Amps)
+	 * @param upper The upper current limit (Amps)
+	 */
+	void SetCurrentLimitsAndStore(FP16_16 lower, FP16_16 upper);
+
+	/**
 	 * @brief Set the upper and lower input current limits
 	 *
 	 * @param lower The lower current limit (Amps)
 	 * @param upper The upper current limit (Amps)
 	 */
 	void SetInputCurrentLimits(float lower, float upper);
-
+	
+	/**
+	 * @brief Set the upper and lower input current limits
+	 *
+	 * @param lower The lower current limit (Amps)
+	 * @param upper The upper current limit (Amps)
+	 */
+	void SetInputCurrentLimits(FP16_16 lower, FP16_16 upper);
+	
 	/**
 	 * @brief Set the upper and lower input current limits and store them in the EEPROM
 	 *
@@ -189,7 +256,15 @@ class VescCAN
 	 * @param upper The upper current limit (Amps)
 	 */
 	void SetInputCurrentLimitsAndStore(float lower, float upper);
-
+	
+	/**
+	 * @brief Set the upper and lower input current limits and store them in the EEPROM
+	 *
+	 * @param lower The lower current limit (Amps)
+	 * @param upper The upper current limit (Amps)
+	 */
+	void SetInputCurrentLimitsAndStore(FP16_16 lower, FP16_16 upper);
+	
 	/**
 	 * @brief Test whether the received frame is a valid VESC frame and updates the packet type with the received type
 	 *
