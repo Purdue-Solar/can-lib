@@ -15,37 +15,25 @@
 namespace PSR
 {
 
-using FP12_20 = FixedPoint<20>;
-
 void VescCAN::SetDutyCycle(float duty)
 {
-	this->SetDutyCycle(FP16_16(duty));
-}
-
-void VescCAN::SetDutyCycle(FP16_16 duty)
-{
-	constexpr FP12_20 dutyMultiplier = FP12_20((uint32_t)100000);
-	constexpr uint32_t frameSize     = 4;
+	constexpr uint32_t dutyMultiplier = 100000;
+	constexpr uint32_t frameSize      = 4;
 
 	CANBus::Frame frame;
 	frame.IsExtended = true;
 	frame.IsRTR      = false;
 	frame.Id         = CreateId(PacketId::SET_DUTY);
 	frame.Length     = frameSize;
-	frame.Data.Lower = reverseEndianness((int32_t)(duty.rescale<20>() * dutyMultiplier));
+	frame.Data.Lower = reverseEndianness((int32_t)(duty * dutyMultiplier));
 
 	this->_can.Transmit(frame);
 }
 
 void VescCAN::SetCurrent(float current)
 {
-	this->SetCurrent(FP16_16(current));
-}
-
-void VescCAN::SetCurrent(FP16_16 current)
-{
-	constexpr FP16_16 currentMultiplier = 1000.0_fp;
-	constexpr uint32_t frameSize        = 4;
+	constexpr uint32_t currentMultiplier = 1000;
+	constexpr uint32_t frameSize         = 4;
 
 	CANBus::Frame frame;
 	frame.IsExtended = true;
@@ -57,10 +45,10 @@ void VescCAN::SetCurrent(FP16_16 current)
 	this->_can.Transmit(frame);
 }
 
-void VescCAN::SetBrakeCurrent(FP16_16 current)
+void VescCAN::SetBrakeCurrent(float current)
 {
-	constexpr FP16_16 currentMultiplier = 1000.0_fp;
-	constexpr uint32_t frameSize        = 4;
+	constexpr uint32_t currentMultiplier = 1000;
+	constexpr uint32_t frameSize         = 4;
 
 	CANBus::Frame frame;
 	frame.IsExtended = true;
@@ -88,32 +76,22 @@ void VescCAN::SetRPM(int32_t rpm)
 
 void VescCAN::SetPosition(float position)
 {
-	this->SetPosition(FP16_16(position));
-}
-
-void VescCAN::SetPosition(FP16_16 position)
-{
-	constexpr FixedPoint<8> positionMultiplier = FixedPoint<8>((uint32_t)10000000);
-	constexpr uint32_t frameSize               = 4;
+	constexpr uint32_t positionMultiplier = 10000000;
+	constexpr uint32_t frameSize          = 4;
 
 	CANBus::Frame frame;
 	frame.IsExtended = true;
 	frame.IsRTR      = false;
 	frame.Id         = CreateId(PacketId::SET_POS);
 	frame.Length     = frameSize;
-	frame.Data.Lower = reverseEndianness((int32_t)(position.rescale<8>() * positionMultiplier));
+	frame.Data.Lower = reverseEndianness((int32_t)(position * positionMultiplier));
 
 	this->_can.Transmit(frame);
 }
 
 void VescCAN::SetRelativeCurrent(float current)
 {
-	return this->SetRelativeCurrent(FP16_16(current));
-}
-
-void VescCAN::SetRelativeCurrent(FP16_16 current)
-{
-	constexpr uint32_t currentMultiplier = 1000.0;
+	constexpr uint32_t currentMultiplier = 1000;
 	constexpr uint32_t frameSize         = 4;
 
 	CANBus::Frame frame;
@@ -128,12 +106,7 @@ void VescCAN::SetRelativeCurrent(FP16_16 current)
 
 void VescCAN::SetRelativeBrakeCurrent(float current)
 {
-	this->SetRelativeBrakeCurrent(FP16_16(current));
-}
-
-void VescCAN::SetRelativeBrakeCurrent(FP16_16 current)
-{
-	constexpr uint32_t currentMultiplier = 1000.0;
+	constexpr uint32_t currentMultiplier = 1000;
 	constexpr uint32_t frameSize         = 4;
 
 	CANBus::Frame frame;
@@ -147,10 +120,6 @@ void VescCAN::SetRelativeBrakeCurrent(FP16_16 current)
 }
 
 void VescCAN::SetCurrentLimits(float lower, float upper)
-{
-	this->SetCurrentLimits(FP16_16(lower), FP16_16(upper));
-}
-void VescCAN::SetCurrentLimits(FP16_16 lower, FP16_16 upper)
 {
 	constexpr uint32_t currentMultiplier = 1000;
 	constexpr uint32_t frameSize         = 8;
@@ -168,11 +137,6 @@ void VescCAN::SetCurrentLimits(FP16_16 lower, FP16_16 upper)
 
 void VescCAN::SetCurrentLimitsAndStore(float lower, float upper)
 {
-	this->SetCurrentLimitsAndStore(FP16_16(lower), FP16_16(upper));
-}
-
-void VescCAN::SetCurrentLimitsAndStore(FP16_16 lower, FP16_16 upper)
-{
 	constexpr uint32_t currentMultiplier = 1000;
 	constexpr uint32_t frameSize         = 8;
 
@@ -189,11 +153,6 @@ void VescCAN::SetCurrentLimitsAndStore(FP16_16 lower, FP16_16 upper)
 
 void VescCAN::SetInputCurrentLimits(float lower, float upper)
 {
-	this->SetInputCurrentLimits(FP16_16(lower), FP16_16(upper));
-}
-
-void VescCAN::SetInputCurrentLimits(FP16_16 lower, FP16_16 upper)
-{
 	constexpr uint32_t currentMultiplier = 1000;
 	constexpr uint32_t frameSize         = 8;
 
@@ -209,11 +168,6 @@ void VescCAN::SetInputCurrentLimits(FP16_16 lower, FP16_16 upper)
 }
 
 void VescCAN::SetInputCurrentLimitsAndStore(float lower, float upper)
-{
-	this->SetInputCurrentLimitsAndStore(FP16_16(lower), FP16_16(upper));
-}
-
-void VescCAN::SetInputCurrentLimitsAndStore(FP16_16 lower, FP16_16 upper)
 {
 	constexpr uint32_t currentMultiplier = 1000;
 	constexpr uint32_t frameSize         = 8;
