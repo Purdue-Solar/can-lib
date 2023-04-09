@@ -2,7 +2,7 @@
  * @file arduino_due.c
  * @author Purdue Solar Racing (Aidan Orr)
  * @brief Arduino Due CAN implementation file
- * @version 0.9
+ * @version 1.0
  *
  * @copyright Copyright (c) 2023
  *

@@ -2,7 +2,7 @@
  * @file vesc.h
  * @author Purdue Solar Racing (Aidan Orr)
  * @brief VESC motor controller CAN communication
- * @version 0.8
+ * @version 1.0
  *
  * @copyright Copyright (c) 2023
  *

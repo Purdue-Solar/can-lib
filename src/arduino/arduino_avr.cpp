@@ -2,7 +2,7 @@
  * @file arduino_avr.cpp
  * @author Purdue Solar Racing (Aidan Orr)
  * @brief Arduino Uno/Mega CAN implementation file
- * @version 0.8
+ * @version 1.0
  *
  * @copyright Copyright (c) 2023
  *

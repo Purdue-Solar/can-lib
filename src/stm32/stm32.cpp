@@ -2,7 +2,7 @@
  * @file stm32.c
  * @author Purdue Solar Racing (Aidan Orr)
  * @brief STM32 CAN implementation file
- * @version 0.8
+ * @version 1.0
  *
  * @copyright Copyright (c) 2023
  *

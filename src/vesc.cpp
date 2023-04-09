@@ -2,7 +2,7 @@
  * @file vesc.cpp
  * @author Purdue Solar Racing (Aidan Orr)
  * @brief VESC motor controller implementation
- * @version 0.8
+ * @version 1.0
  *
  * @copyright Copyright (c) 2023
  *

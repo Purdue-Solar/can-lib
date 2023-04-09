@@ -2,7 +2,7 @@
  * @file bms.cpp
  * @author Purdue Solar Racing (Aidan Orr)
  * @brief Battery management system CAN communication
- * @version 0.1
+ * @version 1.0
  *
  * @copyright Copyright (c) 2023
  *
@@ -31,12 +31,13 @@ bool BmsCAN::IsBmsFrame(const CANBus::Frame& frame, BmsCAN::PacketId& packetType
 BmsCAN::TemperatureAndStateMessage BmsCAN::DecodeTemperatureAndState(const CANBus::Frame& frame)
 {
 	constexpr float stateOfChargeMultiplier = 2;
+	constexpr float tempMultiplier          = 10;
 
 	BmsCAN::TemperatureAndStateMessage status;
 
-	status.InternalTemperature    = frame.Data.Bytes[0];
-	status.HighestCellTemperature = frame.Data.Bytes[1];
-	status.LowestCellTemperature  = frame.Data.Bytes[2];
+	status.InternalTemperature    = reverseEndianness(frame.Data.Words[0]) / tempMultiplier;
+	status.HighestCellTemperature = reverseEndianness(frame.Data.Words[1]) / tempMultiplier;
+	status.LowestCellTemperature  = reverseEndianness(frame.Data.Words[2]) / tempMultiplier;
 
 	status.RelayState    = frame.Data.Bytes[6];
 	status.StateOfCharge = frame.Data.Bytes[7] / stateOfChargeMultiplier;

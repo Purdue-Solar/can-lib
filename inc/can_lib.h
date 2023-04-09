@@ -2,7 +2,7 @@
  * @file can_lib.h
  * @author Purdue Solar Racing (Aidan Orr)
  * @brief Multi-target CAN library for Purdue Solar Racing
- * @version 0.8
+ * @version 1.0
  *
  * @copyright Copyright (c) 2023
  *

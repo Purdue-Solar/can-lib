@@ -2,7 +2,7 @@
  * @file bms.h
  * @author Purdue Solar Racing (Aidan Orr)
  * @brief Battery management system CAN communication
- * @version 0.1
+ * @version 1.0
  *
  * @copyright Copyright (c) 2023
  *

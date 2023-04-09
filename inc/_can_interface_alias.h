@@ -2,7 +2,7 @@
  * @file _can_interface_alias.h
  * @author Purdue Solar Racing (Aidan Orr)
  * @brief CAN Interface aliases
- * @version 0.8
+ * @version 1.0
  *
  * @copyright Copyright (c) 2023
  *
