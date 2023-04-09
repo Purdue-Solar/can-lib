@@ -17,23 +17,25 @@ namespace PSR
 
 void CANBus::Init()
 {
-	CAN_FilterTypeDef filter;
+	CAN_FilterTypeDef canfil;
 
 	// Configure filter ranges
-	filter.FilterMaskIdLow  = 0;
-	filter.FilterMaskIdHigh = 0;
-	filter.FilterMode       = CAN_FILTERMODE_IDLIST;
+	canfil.FilterBank           = 8;
+	canfil.FilterMode           = CAN_FILTERMODE_IDMASK;
+	canfil.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+	canfil.FilterIdHigh         = 0;
+	canfil.FilterIdLow          = 0;
+	canfil.FilterMaskIdHigh     = 0;
+	canfil.FilterMaskIdLow      = 0;
+	canfil.FilterScale          = CAN_FILTERSCALE_32BIT;
+	canfil.FilterActivation     = ENABLE;
 
-	// Configure filter banks
-	filter.FilterBank           = 0;
-	filter.FilterFIFOAssignment = CAN_RX_FIFO0;
-	filter.FilterActivation     = ENABLE;
-	filter.FilterScale          = CAN_FILTERSCALE_32BIT;
-
+	HAL_CAN_ActivateNotification(&this->_interface, CAN_IT_RX_FIFO0_MSG_PENDING);
 	// TODO: Fully understand filter setup
-	HAL_CAN_ConfigFilter(&this->_interface, &filter);
-	filter.FilterFIFOAssignment = CAN_RX_FIFO1;
-	HAL_CAN_ConfigFilter(&this->_interface, &filter);
+	HAL_CAN_ConfigFilter(&this->_interface, &canfil);
+	canfil.FilterFIFOAssignment = CAN_RX_FIFO1;
+	canfil.FilterActivation     = CAN_FILTER_DISABLE;
+	HAL_CAN_ConfigFilter(&this->_interface, &canfil);
 
 	this->_interface.Init.AutoRetransmission = this->_config.AutoRetransmit ? ENABLE : DISABLE;
 	HAL_CAN_Start(&this->_interface);
