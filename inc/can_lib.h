@@ -11,17 +11,7 @@
 #ifndef __CAN_LIB_H
 #define __CAN_LIB_H
 
-// Arduino is dumb
-#ifdef ARDUINO_ARCH_SAM
-#define BOARD_ARDUINO_DUE
-#endif
-
-// Arduino is more dumb
-#ifdef ARDUINO_ARCH_AVR
-#define BOARD_ARDUINO_AVR
-#endif
-
-#if !(defined(BOARD_STM32) || defined(BOARD_ARDUINO_DUE) || defined(BOARD_ARDUINO_AVR))
+#ifndef BOARD_STM32
 #error "A microcontroller board is not selected"
 #endif
 
@@ -36,21 +26,6 @@
 #include STM32_INCLUDE(BOARD_STM32, hal_can.h)
 #endif
 
-// Arduino Due Includes
-#ifdef BOARD_ARDUINO_DUE
-#include "due_can.h"
-#endif // BOARD_ARDUINO_DUE
-
-// Arduino Uno/Mega Includes
-#ifdef BOARD_ARDUINO_AVR
-#include "mcp2515.h"
-#endif
-
-/**
- * @brief Default CAN baud rate of 100kb/s
- */
-#define CAN_BAUD_RATE 100000
-
 namespace PSR
 {
 
@@ -60,7 +35,7 @@ class CANBus
 	static constexpr uint32_t STD_ID_MASK = 0x7FF;
 	static constexpr uint32_t EXT_ID_MASK = 0x1FFFFFFF;
 
-#include "_can_interface_alias.h"
+	typedef CAN_HandleTypeDef Interface;
 
 	/**
 	 * @brief Status of a CAN transmission
@@ -90,8 +65,8 @@ class CANBus
 		uint64_t Value; // Payload reprented as a 64 bit number
 		struct
 		{
-			uint32_t Lower; // Lower 32 bits of the payload
-			uint32_t Upper; // Upper 32 bits of the payload
+			uint32_t Lower;      // Lower 32 bits of the payload
+			uint32_t Upper;      // Upper 32 bits of the payload
 		};
 		uint32_t DoubleWords[2]; // Payload represented as an array of 32 bit words
 		uint16_t Words[4];       // Payload represented as an array of 16 bit words
@@ -161,7 +136,7 @@ class CANBus
 	/**
 	 * @brief Set a callback that receives all available CAN frames.
 	 *
-	 * @param callback A function pointer to the callback to set. 
+	 * @param callback A function pointer to the callback to set.
 	 * @note Passing a @c nullptr will clear the callback.
 	 * @return bool Whether the callback was set correctly. Returns false if the ReceiveMode is set to a value other than ReceiveMode::Callback
 	 */
