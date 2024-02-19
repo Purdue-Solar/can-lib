@@ -1,10 +1,9 @@
 # CAN-LIB
 ## General CAN library for Purdue Solar Racing
 ### Supported Microcontrollers
- - STM32
- - Arduino Due
- - Arduino Uno (with MCP2515)
- - Arduino Mega (with MCP2515)
+ - STM32F series (bxCAN)
+ - STM32G series
+ - STM32H series
 
 # Installation
 
@@ -28,35 +27,25 @@
  17. Close the Properties menu.
  18. You can now include the header files and compile the program with the library.
 
-## Arduino IDE
- 1. Download and unzip repository to your local drive
- 2. `cd` to repository root directory
- 3. Run `./scripts/build_arduino_lib.sh <board_name>` where `<board_name>` is the name of the Arduino board (`arduino_due`, `arduino_avr` (for Arduino Uno/Mega))
- 4. The output zip file is in the `build` folder
- 5. Install the zip file in the Arduino IDE
-
 # Including library
 ## Microcontroller type must be defined before including any library headers.
 
 Example:
 ```c
-#define BOARD_STM32 f3 // Board Selection
-// Or: #define BOARD_ARDUINO_AVR
-// Or: #define BOARD_ARDUINO_DUE
-#include "can_lib.h"
+#define STM32_PROCESSOR f3 // Board Selection
+#include "can_lib.hpp"
 ```
 
 ## Pre-processor definitions are also required during compilation.
 
 Example:
 ```
-$ gcc <...> -DBOARD_STM32=f4 <...>
+$ gcc <...> -DSTM32_PROCESSOR=f4 <...>
 ```
 
 ## Microcontroller define statements
-| Microcontroller	| C/C++ Define Statement 		|
-| ----------------- | ----------------------------- |
-| STM32Fx			| `#define BOARD_STM32 xx`		|
-| Arduino Due		| `#define BOARD_ARDUINO_DUE`	|
-| Arduino Uno		| `#define BOARD_ARDUINO_AVR`	|
-| Arduino Mega		| `#define BOARD_ARDUINO_AVR`	|
+| Microcontroller	| C/C++ Define Statement 			|
+| ----------------- | --------------------------------- |
+| STM32Fx			| `#define STM32_PROCESSOR fx`		|
+| STM32Gx			| `#define STM32_PROCESSOR gx`		|
+| STM32Hx			| `#define STM32_PROCESSOR hx`		|
