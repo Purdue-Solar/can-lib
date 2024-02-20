@@ -1,7 +1,9 @@
 # CAN-LIB
 ## General CAN library for Purdue Solar Racing
 ### Supported Microcontrollers
- - STM32 (bxCAN)
+ - STM32F series (bxCAN)
+ - STM32G series
+ - STM32H series
 
 # Installation
 
@@ -31,12 +33,19 @@
 Example:
 ```c
 #define STM32_PROCESSOR f3 // Board Selection
-#include "can_lib.h"
+#include "can_lib.hpp"
 ```
 
 ## Pre-processor definitions are also required during compilation.
 
 Example:
 ```
-$ gcc <...> --DSTM32_PROCESSOR=f0 <...>
+$ gcc <...> -DSTM32_PROCESSOR=f4 <...>
 ```
+
+## Microcontroller define statements
+| Microcontroller	| C/C++ Define Statement 			|
+| ----------------- | --------------------------------- |
+| STM32Fx			| `#define STM32_PROCESSOR fx`		|
+| STM32Gx			| `#define STM32_PROCESSOR gx`		|
+| STM32Hx			| `#define STM32_PROCESSOR hx`		|
