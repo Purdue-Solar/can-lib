@@ -3,12 +3,13 @@ BasedOnStyle: Microsoft
 UseTab: AlignWithSpaces
 IndentWidth: 4
 TabWidth: 4
-ColumnLimit: 0
+ColumnLimit: 180
+Standard: Cpp11
 
 BraceWrapping: 
   SplitEmptyFunction: false
   SplitEmptyRecord: false
-  BeforeLambdaBody: true
+  BeforeLambdaBody: false
   AfterStruct: true
   AfterUnion: true
   AfterClass: true
@@ -18,6 +19,7 @@ BraceWrapping:
   AfterControlStatement: MultiLine
 
 PackConstructorInitializers: NextLine
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
 
 PointerAlignment: Left
 
@@ -27,7 +29,8 @@ AlignTrailingComments: true
 AlignConsecutiveAssignments: Consecutive
 
 AlignOperands: Align
-AllowShortBlocksOnASingleLine: Empty
+AllowShortBlocksOnASingleLine: true
+AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never
 BinPackParameters: false
 AlignArrayOfStructures: Right
