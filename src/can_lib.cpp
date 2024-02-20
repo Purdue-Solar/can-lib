@@ -19,23 +19,56 @@ namespace PSR
 
 std::vector<std::tuple<CanBus*, CanBus::Interface>> CanBus::RegisteredInterfaces = std::vector<std::tuple<CanBus*, CanBus::Interface>>();
 
-void CanBus::Init()
+CanBus::CanBus(CanBus::Interface interface)
+	: _interface(interface), _fifo0Callbacks(), _fifo1Callbacks()
+{
+	interface->RxFifo0MsgPendingCallback = RxCallbackFifo0;
+	interface->RxFifo1MsgPendingCallback = RxCallbackFifo1;
+
+	bool found = false;
+	for (std::tuple<CanBus*, Interface>& it : RegisteredInterfaces)
+	{
+		if (std::get<0>(it) == this)
+		{
+			found = true;
+			break;
+		}
+	}
+
+	if (!found)
+	{
+		RegisteredInterfaces.push_back(std::make_tuple(this, interface));
+	}
+}
+
+bool CanBus::Init()
 {
 	if (!this->_fifo0Callbacks.empty())
-		HAL_CAN_ActivateNotification(this->_interface, CAN_IT_RX_FIFO0_MSG_PENDING);
+	{
+		if (HAL_CAN_ActivateNotification(this->_interface, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
+			return false;
+	}
 	if (!this->_fifo1Callbacks.empty())
-		HAL_CAN_ActivateNotification(this->_interface, CAN_IT_RX_FIFO1_MSG_PENDING);
+	{
+		if (HAL_CAN_ActivateNotification(this->_interface, CAN_IT_RX_FIFO1_MSG_PENDING) != HAL_OK)
+			return false;
+	}
 
 	this->_interface->RxFifo0MsgPendingCallback = CanBus::RxCallbackFifo0;
 	this->_interface->RxFifo1MsgPendingCallback = CanBus::RxCallbackFifo1;
 
-		this->_interface->Init.AutoRetransmission = ENABLE;
-	HAL_CAN_Init(this->_interface);
-	HAL_CAN_Start(this->_interface);
+	this->_interface->Init.AutoRetransmission = ENABLE;
+	if (HAL_CAN_Init(this->_interface) != HAL_OK)
+		return false;
+	if (HAL_CAN_Start(this->_interface) != HAL_OK)
+		return false;
+
+	return true;
 }
 
-CanBus::TransmitStatus CanBus::Transmit(const Frame& frame)
+bool CanBus::Transmit(const Frame& frame)
 {
+	this->TxStartEvent(this);
 	CAN_TxHeaderTypeDef txHeader;
 
 	while (HAL_CAN_GetTxMailboxesFreeLevel(this->_interface) == 0)
@@ -48,17 +81,12 @@ CanBus::TransmitStatus CanBus::Transmit(const Frame& frame)
 	txHeader.RTR   = frame.IsRTR ? CAN_RTR_REMOTE : CAN_RTR_DATA;
 
 	uint32_t mailbox;
-	HAL_StatusTypeDef status = HAL_CAN_AddTxMessage(this->_interface, &txHeader, (uint8_t*)frame.Data.Bytes, &mailbox);
+	bool status = HAL_CAN_AddTxMessage(this->_interface, &txHeader, (uint8_t*)frame.Data.Bytes, &mailbox) == HAL_OK;
+	if (!status)
+		this->TxErrorEvent(this);
 
-	switch (status)
-	{
-	case HAL_OK:
-		return CanBus::TransmitStatus::Success;
-	case HAL_ERROR:
-		return CanBus::TransmitStatus::Error;
-	default:
-		return CanBus::TransmitStatus::Unknown;
-	}
+	this->TxEndEvent(this);
+	return status;
 }
 
 /**
@@ -97,18 +125,33 @@ static bool TranslateNextFrame(CAN_HandleTypeDef* hcan, CanBus::Frame& frame, ui
 
 bool CanBus::Receive(CanBus::Frame& frame)
 {
-	return TranslateNextFrame(this->_interface, frame, CAN_RX_FIFO0) || TranslateNextFrame(this->_interface, frame, CAN_RX_FIFO1);
+	this->RxStartEvent(this);
+
+	bool status = TranslateNextFrame(this->_interface, frame, CAN_RX_FIFO0) || TranslateNextFrame(this->_interface, frame, CAN_RX_FIFO1);
+	if (!status)
+		this->RxErrorEvent(this);
+
+	this->RxEndEvent(this);
+	return status;
+}
+
+// Hack to enable comparison of function pointers
+template<typename T, typename... U>
+size_t getAddress(std::function<T(U...)> f) {
+    typedef T(fnType)(U...);
+    fnType ** fnPointer = f.template target<fnType*>();
+    return (size_t) *fnPointer;
 }
 
 bool CanBus::RemoveRxCallback(Callback callback, uint32_t fifo)
 {
-	CAN_TypeDef* can = this->_interface->Instance;
+	CAN_TypeDef* can                        = this->_interface->Instance;
 	std::vector<RxCallbackStore>& callbacks = fifo == CAN_RX_FIFO0 ? this->_fifo0Callbacks : this->_fifo1Callbacks;
 
 	bool found = false;
 	for (auto it = callbacks.begin(); it != callbacks.end(); it++)
 	{
-		if ((*it).Function == callback)
+		if (getAddress((*it).Function) == getAddress(callback))
 		{
 			can->FMR = CAN_FMR_FINIT;
 			can->FA1R &= ~(1 << (*it).FilterNumber);
@@ -125,8 +168,8 @@ bool CanBus::RemoveRxCallback(Callback callback, uint32_t fifo)
 bool CanBus::AddRxCallback(Callback callback, const Filter& filter, uint32_t fifo)
 {
 	CAN_TypeDef* can = this->_interface->Instance;
-	can->FMR = CAN_FMR_FINIT;
-	uint32_t i = 0;
+	can->FMR         = CAN_FMR_FINIT;
+	uint32_t i       = 0;
 	while (i < CanBus::MAX_FILTERS)
 	{
 		if ((can->FA1R & (1 << i)) == 0)
@@ -149,7 +192,7 @@ bool CanBus::AddRxCallback(Callback callback, const Filter& filter, uint32_t fif
 	can->FMR = 0;
 
 	CanBus::RxCallbackStore store;
-	store.Function = callback;
+	store.Function     = callback;
 	store.FilterNumber = i;
 
 	switch (fifo)
@@ -173,13 +216,14 @@ bool CanBus::AddRxCallback(Callback callback, const Filter& filter, uint32_t fif
 	return true;
 }
 
-void RxCallback(CanBus::Interface hcan, uint32_t fifo)
+void CanBus::RxCallback(CanBus::Interface hcan, uint32_t fifo)
 {
 	for (std::tuple<CanBus*, CanBus::Interface>& it : CanBus::RegisteredInterfaces)
 	{
 		if (std::get<1>(it) == hcan)
 		{
 			CanBus* canbus = std::get<0>(it);
+			canbus->RxStartEvent(canbus);
 
 			CanBus::Frame frame;
 			if (TranslateNextFrame(hcan, frame, fifo))
@@ -189,7 +233,7 @@ void RxCallback(CanBus::Interface hcan, uint32_t fifo)
 					for (auto& callback : canbus->_fifo0Callbacks)
 					{
 						if (callback.FilterNumber == frame.FilterIndex)
-							callback.Function(frame);
+							callback.Function(canbus, frame);
 					}
 				}
 				else if (fifo == CAN_RX_FIFO1)
@@ -197,10 +241,16 @@ void RxCallback(CanBus::Interface hcan, uint32_t fifo)
 					for (auto& callback : canbus->_fifo1Callbacks)
 					{
 						if (callback.FilterNumber == frame.FilterIndex)
-							callback.Function(frame);
+							callback.Function(canbus, frame);
 					}
 				}
 			}
+			else
+			{
+				canbus->RxErrorEvent(canbus);
+			}
+
+			canbus->RxEndEvent(canbus);
 		}
 	}
 }

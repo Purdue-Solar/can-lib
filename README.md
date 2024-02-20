@@ -21,7 +21,7 @@
  11. Select the `can-lib/src` folder and hit Okay.
  12. Repeat Step 11 for each build configuration.
  13. Under the `Symbols` tab, click `Add` to add a new compilation symbol.
- 14. Type `BOARD_STM32` in the name field.
+ 14. Type `STM32_PROCESSOR` in the name field.
  15. In the value field put the number of the STM32 board that is being used `f0` for F0, `f1` for F1, etc.
  16. Check both the `Add to all configurations` and `Add to all languages` checkboxes and hit OK.
  17. Close the Properties menu.

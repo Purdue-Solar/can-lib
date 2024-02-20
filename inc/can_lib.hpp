@@ -38,16 +38,6 @@ class CanBus
 	typedef CAN_HandleTypeDef* Interface;
 
 	/**
-	 * @brief Status of a CAN transmission
-	 */
-	enum struct TransmitStatus
-	{
-		Unknown,
-		Success,
-		Error
-	};
-
-	/**
 	 * @brief Represents a CAN payload in many ways
 	 * @remark Assumes little endian byte ordering
 	 */
@@ -59,9 +49,16 @@ class CanBus
 			uint32_t Lower; // Lower 32 bits of the payload
 			uint32_t Upper; // Upper 32 bits of the payload
 		};
-		uint32_t DoubleWords[2]; // Payload represented as an array of 32 bit words
-		uint16_t Words[4];       // Payload represented as an array of 16 bit words
-		uint8_t Bytes[8];        // Payload represented as an array of bytes
+		uint32_t Words[2];     // Payload represented as an array of 32 bit words
+		uint16_t HalfWords[4]; // Payload represented as an array of 16 bit words
+		uint8_t Bytes[8];      // Payload represented as an array of bytes
+
+		/**
+		 * @brief Construct a new Payload object
+		 */
+		constexpr Payload()
+			: Value(0)
+		{}
 	};
 
 	/**
@@ -81,9 +78,16 @@ class CanBus
 		uint32_t Id;          // 11 or 29 bit CAN Identifier
 		bool IsRTR;           // Remote Transmission Request
 		bool IsExtended;      // Whether the frame is an extended or standard frame
-		uint32_t FilterIndex; // The filter that matched the frame
+		uint32_t FilterIndex; // The filter that matched the frame (only used when receiving frames)
 		uint32_t Length;      // Length of payload in bytes
 		Payload Data;         // CAN Payload
+
+		/**
+		 * @brief Construct a new Frame object
+		 */
+		constexpr Frame()
+			: Id(0), IsRTR(false), IsExtended(false), FilterIndex(0), Length(0), Data()
+		{}
 	};
 
 	/**
@@ -92,7 +96,7 @@ class CanBus
 	 * @param frame The received CAN frame
 	 * @return void
 	 */
-	typedef void (*Callback)(const Frame&);
+	using Callback = std::function<void(CanBus*, const Frame&)>;
 
 	struct RxCallbackStore
 	{
@@ -108,7 +112,7 @@ class CanBus
 		constexpr static uint32_t Low     = 3;
 	};
 
-	typedef union
+	union CanId
 	{
 		struct
 		{
@@ -119,59 +123,142 @@ class CanBus
 			uint32_t Priority : 2; // 2 bit priority, lower is higher priority
 		};
 		uint32_t Value;
-	} CanId;
+
+		static constexpr uint8_t DstOffset      = 0;
+		static constexpr uint8_t SrcOffset      = 8;
+		static constexpr uint8_t MessageOffset  = 16;
+		static constexpr uint8_t TypeOffset     = 22;
+		static constexpr uint8_t PriorityOffset = 27;
+
+		static constexpr uint8_t MulticastDestination = 0xFF;
+
+		constexpr CanId()
+			: Value(0)
+		{}
+
+		constexpr CanId(uint32_t value)
+			: Value(value)
+		{}
+
+		constexpr CanId(uint8_t dst, uint8_t src, uint8_t message, uint8_t type, uint8_t priority)
+			: Dst(dst), Src(src), Message(message), Type(type), Priority(priority)
+		{}
+
+		static constexpr CanId FromValue(uint32_t value)
+		{
+			return CanId(value);
+		}
+
+		static constexpr CanId DstMask()
+		{
+			CanId id;
+			id.Dst = 0xFF;
+			return id;
+		}
+
+		static constexpr CanId SrcMask()
+		{
+			CanId id;
+			id.Src = 0xFF;
+			return id;
+		}
+
+		static constexpr CanId MessageMask()
+		{
+			CanId id;
+			id.Message = 0x3F;
+			return id;
+		}
+
+		static constexpr CanId TypeMask()
+		{
+			CanId id = { 0 };
+			id.Type  = 0x1F;
+			return id;
+		}
+
+		static constexpr CanId PriorityMask()
+		{
+			CanId id    = { 0 };
+			id.Priority = 0x3;
+			return id;
+		}
+
+		constexpr bool operator==(const CanId& other) const
+		{
+			return Value == other.Value;
+		}
+
+		constexpr bool operator!=(const CanId& other) const
+		{
+			return Value != other.Value;
+		}
+
+		constexpr CanId operator|(const CanId& other) const
+		{
+			CanId id = { 0 };
+			id.Value = Value | other.Value;
+			return id;
+		}
+
+		constexpr CanId operator&(const CanId& other) const
+		{
+			CanId id = { 0 };
+			id.Value = Value & other.Value;
+			return id;
+		}
+	};
 
 	static constexpr uint32_t MAX_FILTERS = 8;
-	static std::vector<std::tuple<CanBus*, Interface>> RegisteredInterfaces;
 
-	Interface _interface;
-	std::vector<RxCallbackStore> _fifo0Callbacks;
-	std::vector<RxCallbackStore> _fifo1Callbacks;
-
+	// Static Private Definitions
   private:
+	static std::vector<std::tuple<CanBus*, Interface>> RegisteredInterfaces;
 	static void RxCallbackFifo0(CAN_HandleTypeDef* hcan);
 	static void RxCallbackFifo1(CAN_HandleTypeDef* hcan);
+	static void RxCallback(CanBus::Interface hcan, uint32_t fifo);
+
+	// Private Instance Definitions
+  private:
+	Interface _interface;                         // The handle to the CAN interface
+	std::vector<RxCallbackStore> _fifo0Callbacks; // The callbacks for FIFO 0
+	std::vector<RxCallbackStore> _fifo1Callbacks; // The callbacks for FIFO 1
+
+	// Public Instance Definitions
+  public:
+	std::function<void(CanBus*)> TxStartEvent = nullptr; // The event to call when a transmission starts
+	std::function<void(CanBus*)> TxEndEvent   = nullptr; // The event to call when a transmission completes
+	std::function<void(CanBus*)> TxErrorEvent = nullptr; // The event to call when a transmission errors
+	std::function<void(CanBus*)> RxStartEvent = nullptr; // The event to call when a reception starts
+	std::function<void(CanBus*)> RxEndEvent   = nullptr; // The event to call when a reception completes
+	std::function<void(CanBus*)> RxErrorEvent = nullptr; // The event to call when a reception errors
 
   public:
+	CanBus()
+		: _interface(nullptr), _fifo0Callbacks(), _fifo1Callbacks()
+	{}
+
 	/**
 	 * @brief Create a new CAN object
 	 *
 	 * @param interface A handle to the CAN interface
 	 */
-	CanBus(Interface interface)
-		: _interface(interface), _fifo0Callbacks(), _fifo1Callbacks()
-	{
-		interface->RxFifo0MsgPendingCallback = RxCallbackFifo0;
-		interface->RxFifo1MsgPendingCallback = RxCallbackFifo1;
-
-		bool found = false;
-		for (std::tuple<CanBus*, Interface>& it : RegisteredInterfaces)
-		{
-			if (std::get<0>(it) == this)
-			{
-				found = true;
-				break;
-			}
-		}
-
-		if (!found)
-		{
-			RegisteredInterfaces.push_back(std::make_tuple(this, interface));
-		}
-	}
+	CanBus(Interface interface);
 
 	/**
 	 * @brief Initialize CAN communication
+	 *
+	 * @return bool Whether the CAN interface was initialized correctly
 	 */
-	void Init();
+	bool Init();
 
 	/**
 	 * @brief Transmit a CAN frame
 	 *
 	 * @param frame The frame data to send
-	 * @return TransmitStatus A status representing whether the frame was successfully sent
+	 * @return bool Whether the frame was transmitted correctly
 	 */
-	TransmitStatus Transmit(const Frame& frame);
+	bool Transmit(const Frame& frame);
 
 	/**
 	 * @brief Add a callback that receives frames that match a specific filter.
@@ -200,10 +287,17 @@ class CanBus
 	bool Receive(Frame& frame);
 
 	/**
-	 * @brief Destroy the CANBus object
+	 * @brief Destroy the CanBus object
 	 */
 	~CanBus()
 	{
+		for (auto it = RegisteredInterfaces.begin(); it != RegisteredInterfaces.end(); it++)
+		{
+			if (std::get<0>(*it) == this)
+			{
+				RegisteredInterfaces.erase(it);
+			}
+		}
 	}
 };
 
