@@ -56,9 +56,7 @@ class CanBus
 		/**
 		 * @brief Construct a new Payload object
 		 */
-		constexpr Payload()
-			: Value(0)
-		{}
+		constexpr Payload() : Value(0) {}
 	};
 
 	/**
@@ -85,9 +83,7 @@ class CanBus
 		/**
 		 * @brief Construct a new Frame object
 		 */
-		constexpr Frame()
-			: Id(0), IsRTR(false), IsExtended(false), FilterIndex(0), Length(0), Data()
-		{}
+		constexpr Frame() : Id(0), IsRTR(false), IsExtended(false), FilterIndex(0), Length(0), Data() {}
 	};
 
 	/**
@@ -132,17 +128,11 @@ class CanBus
 
 		static constexpr uint8_t MulticastDestination = 0xFF;
 
-		constexpr CanId()
-			: Value(0)
-		{}
+		constexpr CanId() : Value(0) {}
 
-		constexpr CanId(uint32_t value)
-			: Value(value)
-		{}
+		constexpr CanId(uint32_t value) : Value(value) {}
 
-		constexpr CanId(uint8_t dst, uint8_t src, uint8_t message, uint8_t type, uint8_t priority)
-			: Dst(dst), Src(src), Message(message), Type(type), Priority(priority)
-		{}
+		constexpr CanId(uint8_t dst, uint8_t src, uint8_t message, uint8_t type, uint8_t priority) : Dst(dst), Src(src), Message(message), Type(type), Priority(priority) {}
 
 		static constexpr CanId FromValue(uint32_t value)
 		{
@@ -152,35 +142,35 @@ class CanBus
 		static constexpr CanId DstMask()
 		{
 			CanId id;
-			id.Dst = 0xFF;
+			id.Value = 0xFF;
 			return id;
 		}
 
 		static constexpr CanId SrcMask()
 		{
 			CanId id;
-			id.Src = 0xFF;
+			id.Value = 0xFF << SrcOffset;
 			return id;
 		}
 
 		static constexpr CanId MessageMask()
 		{
 			CanId id;
-			id.Message = 0x3F;
+			id.Value = 0x3F << MessageOffset;
 			return id;
 		}
 
 		static constexpr CanId TypeMask()
 		{
-			CanId id = { 0 };
-			id.Type  = 0x1F;
+			CanId id;
+			id.Value  = 0x1F << TypeOffset;
 			return id;
 		}
 
 		static constexpr CanId PriorityMask()
 		{
-			CanId id    = { 0 };
-			id.Priority = 0x3;
+			CanId id;
+			id.Value = 0x3 << PriorityOffset;
 			return id;
 		}
 
@@ -226,17 +216,15 @@ class CanBus
 
 	// Public Instance Definitions
   public:
-	std::function<void(CanBus*)> TxStartEvent = nullptr; // The event to call when a transmission starts
-	std::function<void(CanBus*)> TxEndEvent   = nullptr; // The event to call when a transmission completes
-	std::function<void(CanBus*)> TxErrorEvent = nullptr; // The event to call when a transmission errors
-	std::function<void(CanBus*)> RxStartEvent = nullptr; // The event to call when a reception starts
-	std::function<void(CanBus*)> RxEndEvent   = nullptr; // The event to call when a reception completes
-	std::function<void(CanBus*)> RxErrorEvent = nullptr; // The event to call when a reception errors
+	std::function<void(CanBus*)> TxStartEvent; // The event to call when a transmission starts
+	std::function<void(CanBus*)> TxEndEvent;   // The event to call when a transmission completes
+	std::function<void(CanBus*)> TxErrorEvent; // The event to call when a transmission errors
+	std::function<void(CanBus*)> RxStartEvent; // The event to call when a reception starts
+	std::function<void(CanBus*)> RxEndEvent;   // The event to call when a reception completes
+	std::function<void(CanBus*)> RxErrorEvent; // The event to call when a reception errors
 
   public:
-	CanBus()
-		: _interface(nullptr), _fifo0Callbacks(), _fifo1Callbacks()
-	{}
+	CanBus() : _interface(), _fifo0Callbacks(), _fifo1Callbacks(), TxStartEvent(), TxEndEvent(), TxErrorEvent(), RxStartEvent(), RxEndEvent(), RxErrorEvent() {}
 
 	/**
 	 * @brief Create a new CAN object
@@ -278,6 +266,10 @@ class CanBus
 	 */
 	bool RemoveRxCallback(Callback callback, uint32_t fifo = CAN_RX_FIFO0);
 
+  private:
+	bool TranslateNextFrame(Frame& frame, uint32_t fifo);
+
+  public:
 	/**
 	 * @brief Poll whether a new frame is available.
 	 *
@@ -291,10 +283,8 @@ class CanBus
 	 */
 	~CanBus()
 	{
-		for (auto it = RegisteredInterfaces.begin(); it != RegisteredInterfaces.end(); it++)
-		{
-			if (std::get<0>(*it) == this)
-			{
+		for (auto it = RegisteredInterfaces.begin(); it != RegisteredInterfaces.end(); it++) {
+			if (std::get<0>(*it) == this) {
 				RegisteredInterfaces.erase(it);
 			}
 		}
