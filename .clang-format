@@ -16,22 +16,24 @@ BraceWrapping:
   AfterExternBlock: true
   AfterNamespace: true
   AfterFunction: true
-  AfterControlStatement: MultiLine
+  AfterControlStatement: true
 
 PackConstructorInitializers: NextLine
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 
 PointerAlignment: Left
 
+AlignOperands: Align
 AlignConsecutiveMacros: Consecutive
 AlignEscapedNewlines: Right
 AlignTrailingComments: true
 AlignConsecutiveAssignments: Consecutive
 
-AlignOperands: Align
 AllowShortBlocksOnASingleLine: true
 AllowShortFunctionsOnASingleLine: Empty
+AllowShortLambdasOnSingleLine: All
 AllowShortIfStatementsOnASingleLine: Never
+BinPackArguments: false
 BinPackParameters: false
 AlignArrayOfStructures: Right
 
