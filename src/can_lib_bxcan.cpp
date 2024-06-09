@@ -25,7 +25,10 @@ CanBus::CanBus(CanBus::Interface* interface) : _interface(interface), _fifo0Call
 {
 	interface->RxFifo0MsgPendingCallback = RxCallbackFifo0;
 	interface->RxFifo1MsgPendingCallback = RxCallbackFifo1;
+}
 
+bool CanBus::Init()
+{
 	bool found = false;
 	for (std::tuple<CanBus*, CanBus::Interface*>& it : RegisteredInterfaces)
 	{
@@ -40,10 +43,7 @@ CanBus::CanBus(CanBus::Interface* interface) : _interface(interface), _fifo0Call
 	{
 		RegisteredInterfaces.push_back(std::make_tuple(this, interface));
 	}
-}
 
-bool CanBus::Init()
-{
 	if (!this->_fifo0Callbacks.empty())
 	{
 		if (HAL_CAN_ActivateNotification(this->_interface, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)

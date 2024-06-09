@@ -13,7 +13,11 @@
 #else
 
 #include "can_lib.hpp"
+#include "interrupt_queue.hpp"
 #include <cmath>
+#ifdef PRINT_DEBUG
+#include <cstdio>
+#endif
 
 #if PSR_CAN_MODE == 2
 
@@ -25,8 +29,11 @@ std::vector<std::tuple<CanBus*, CanBus::Interface*>> CanBus::RegisteredInterface
 CanBus::CanBus(CanBus::Interface* interface) : _interface(interface), _fifo0Callbacks(), _fifo1Callbacks()
 {
 	interface->RxFifo0Callback = CanBus::RxCallbackFifo0;
-	interface->RxFifo0Callback = CanBus::RxCallbackFifo1;
+	interface->RxFifo1Callback = CanBus::RxCallbackFifo1;
+}
 
+bool CanBus::Init()
+{
 	bool found = false;
 	for (std::tuple<CanBus*, CanBus::Interface*>& it : RegisteredInterfaces)
 	{
@@ -39,12 +46,9 @@ CanBus::CanBus(CanBus::Interface* interface) : _interface(interface), _fifo0Call
 
 	if (!found)
 	{
-		RegisteredInterfaces.push_back(std::make_tuple(this, interface));
+		RegisteredInterfaces.push_back(std::make_tuple(this, this->_interface));
 	}
-}
 
-bool CanBus::Init()
-{
 	HAL_FDCAN_Stop(this->_interface);
 
 	if (!this->_fifo0Callbacks.empty())
@@ -59,7 +63,7 @@ bool CanBus::Init()
 	}
 
 	this->_interface->RxFifo0Callback = CanBus::RxCallbackFifo0;
-	this->_interface->RxFifo0Callback = CanBus::RxCallbackFifo1;
+	this->_interface->RxFifo1Callback = CanBus::RxCallbackFifo1;
 
 	this->_interface->Init.AutoRetransmission = ENABLE;
 	this->_interface->Init.TransmitPause      = DISABLE;
@@ -69,20 +73,52 @@ bool CanBus::Init()
 
 	if (HAL_FDCAN_Init(this->_interface) != HAL_OK)
 		return false;
-	if (HAL_FDCAN_ConfigGlobalFilter(this->_interface, FDCAN_REJECT, FDCAN_REJECT, FDCAN_REJECT_REMOTE, FDCAN_REJECT_REMOTE) != HAL_OK)
-		return false;
+	 if (HAL_FDCAN_ConfigGlobalFilter(this->_interface, FDCAN_REJECT, FDCAN_REJECT, FDCAN_REJECT_REMOTE, FDCAN_REJECT_REMOTE) != HAL_OK)
+	 	return false;
 	if (HAL_FDCAN_Start(this->_interface) != HAL_OK)
 		return false;
+
+#ifdef PRINT_DEBUG
+	printf("\tInitialized CanBus.\n");
+#endif
 
 	return true;
 }
 
+static void PrintFrameInfo(const PSR::CanBus::Frame& frame, const char* prefix)
+{
+	printf("CAN %s: (",  prefix);
+
+	if (frame.IsExtended)
+		printf("Id: %8lX, ", frame.Id);
+	else
+		printf("Id: %3lX, ", frame.Id);
+
+	printf("Len: %ld, Data:", frame.Length);
+	for (size_t i = 0; i < frame.Length; i++)
+		printf(" %X%X", frame.Data.Bytes[i] >> 4, frame.Data.Bytes[i] & 0xF);
+
+	printf(")\n");
+}
+
 bool CanBus::Transmit(const Frame& frame) const
 {
+	constexpr uint32_t timeout = 60000;
+
 	this->TxStartEvent(this);
 	FDCAN_TxHeaderTypeDef txHeader;
 
-	while (HAL_FDCAN_GetTxFifoFreeLevel(this->_interface) == 0) {}
+#ifdef PRINT_DEBUG
+	PrintFrameInfo(frame, "TX");
+#endif
+
+	uint32_t tickStart = HAL_GetTick();
+	while (HAL_FDCAN_GetTxFifoFreeLevel(this->_interface) == 0)
+	{
+		uint32_t tick = HAL_GetTick();
+		if ((tick - tickStart) > timeout)
+			return false;
+	}
 
 	txHeader.Identifier          = frame.Id & (frame.IsExtended ? CanBus::EXT_ID_MASK : CanBus::STD_ID_MASK);
 	txHeader.IdType              = frame.IsExtended ? FDCAN_EXTENDED_ID : FDCAN_STANDARD_ID;
@@ -128,7 +164,7 @@ static bool TranslateNextFrame(FDCAN_HandleTypeDef* hfdcan, CanBus::Frame& frame
 		frame.Length          = rxHeader.DataLength;
 		frame.IsRTR           = rxHeader.RxFrameType == FDCAN_REMOTE_FRAME;
 		frame.IsExtended      = isExtended;
-		frame.IsFilterMatched = rxHeader.IsFilterMatchingFrame == 1;
+		frame.IsFilterMatched = rxHeader.IsFilterMatchingFrame == 0;
 		frame.FilterIndex     = rxHeader.FilterIndex;
 
 		return true;
@@ -144,6 +180,12 @@ bool CanBus::Receive(CanBus::Frame& frame) const
 	bool status = TranslateNextFrame(this->_interface, frame, CanBus::RX_FIFO0) || TranslateNextFrame(this->_interface, frame, CanBus::RX_FIFO1);
 	if (!status)
 		this->RxErrorEvent(this);
+	else
+	{
+#ifdef PRINT_DEBUG
+	PrintFrameInfo(frame, "RX");
+#endif
+	}
 
 	this->RxEndEvent(this);
 	return status;
@@ -198,7 +240,7 @@ bool CanBus::AddRxCallback(Callback callback, const Filter& filter, uint32_t fif
 
 		fdcanFilter.IdType       = FDCAN_STANDARD_ID;
 		fdcanFilter.FilterIndex  = currentFilterIndex;
-		fdcanFilter.FilterConfig = fifo == CanBus::RX_FIFO0 ? FDCAN_FILTER_TO_RXFIFO0_HP : FDCAN_FILTER_TO_RXFIFO1_HP;
+		fdcanFilter.FilterConfig = fifo == CanBus::RX_FIFO0 ? FDCAN_FILTER_TO_RXFIFO0 : FDCAN_FILTER_TO_RXFIFO1;
 	}
 	else
 	{
@@ -215,7 +257,8 @@ bool CanBus::AddRxCallback(Callback callback, const Filter& filter, uint32_t fif
 		fdcanFilter.FilterConfig = fifo == CanBus::RX_FIFO0 ? FDCAN_FILTER_TO_RXFIFO0_HP : FDCAN_FILTER_TO_RXFIFO1_HP;
 	}
 
-	HAL_FDCAN_ConfigFilter(this->_interface, &fdcanFilter);
+	if (HAL_FDCAN_ConfigFilter(this->_interface, &fdcanFilter) != HAL_OK)
+		return false;
 
 	CanBus::RxCallbackStore store;
 	store.Function     = callback;
@@ -232,6 +275,7 @@ bool CanBus::AddRxCallback(Callback callback, const Filter& filter, uint32_t fif
 		this->_fifo1Callbacks.push_back(store);
 		break;
 	default:
+		return false;
 		break;
 	}
 
@@ -253,17 +297,24 @@ void CanBus::RxCallback(CanBus::Interface* hcan, uint32_t fifo)
 		if (std::get<1>(it) == hcan)
 		{
 			CanBus* canbus = std::get<0>(it);
-			canbus->RxStartEvent(canbus);
+			if (canbus->RxStartEvent)
+				canbus->RxStartEvent(canbus);
 
 			CanBus::Frame frame;
 			if (TranslateNextFrame(hcan, frame, fifo))
 			{
+#ifdef PRINT_DEBUG
+				PrintFrameInfo(frame, "RX");
+#endif
 				if (fifo == CanBus::RX_FIFO0)
 				{
 					for (auto& callback : canbus->_fifo0Callbacks)
 					{
 						if (callback.FilterNumber == frame.FilterIndex && callback.IsExtended == frame.IsExtended)
-							callback.Function(canbus, frame);
+						{
+							auto function = [canbus, frame, callback]() {callback.Function(canbus, frame);};
+							InterruptQueue::AddInterrupt(Interrupt(function, HAL_GetTick(), "CAN FIFO 0 Interrupt", true));
+						}
 					}
 				}
 				else if (fifo == CanBus::RX_FIFO1)
@@ -271,16 +322,24 @@ void CanBus::RxCallback(CanBus::Interface* hcan, uint32_t fifo)
 					for (auto& callback : canbus->_fifo1Callbacks)
 					{
 						if (callback.FilterNumber == frame.FilterIndex && callback.IsExtended == frame.IsExtended)
-							callback.Function(canbus, frame);
+						{
+							auto function = [canbus, frame, callback]() {callback.Function(canbus, frame);};
+							InterruptQueue::AddInterrupt(Interrupt(function, HAL_GetTick(), "CAN FIFO 1 Interrupt", true));
+						}
 					}
 				}
 			}
 			else
 			{
-				canbus->RxErrorEvent(canbus);
+#ifdef PRINT_DEBUG
+				printf("CAN RX Error.\n");
+#endif
+				if (canbus->RxErrorEvent)
+					canbus->RxErrorEvent(canbus);
 			}
 
-			canbus->RxEndEvent(canbus);
+			if (canbus->RxEndEvent)
+				canbus->RxEndEvent(canbus);
 		}
 	}
 }

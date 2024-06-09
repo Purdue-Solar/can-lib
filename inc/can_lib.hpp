@@ -186,21 +186,21 @@ class CanBus
 
 		static constexpr CanId DstMask()
 		{
-			CanId id;
+			CanId id = {0};
 			id.Dst = 0xFF;
 			return id;
 		}
 
 		static constexpr CanId SrcMask()
 		{
-			CanId id;
+			CanId id = {0};
 			id.Src = 0xFF;
 			return id;
 		}
 
 		static constexpr CanId MessageMask()
 		{
-			CanId id;
+			CanId id = {0};
 			id.Message = 0x3F;
 			return id;
 		}
@@ -272,14 +272,16 @@ class CanBus
 	std::vector<RxCallbackStore> _fifo0Callbacks; // The callbacks for FIFO 0
 	std::vector<RxCallbackStore> _fifo1Callbacks; // The callbacks for FIFO 1
 
+	static void EmptyFunction(const CanBus*) {}
+
 	// Public Instance Definitions
   public:
-	std::function<void(const CanBus*)> TxStartEvent = nullptr; // The event to call when a transmission starts
-	std::function<void(const CanBus*)> TxEndEvent   = nullptr; // The event to call when a transmission completes
-	std::function<void(const CanBus*)> TxErrorEvent = nullptr; // The event to call when a transmission errors
-	std::function<void(const CanBus*)> RxStartEvent = nullptr; // The event to call when a reception starts
-	std::function<void(const CanBus*)> RxEndEvent   = nullptr; // The event to call when a reception completes
-	std::function<void(const CanBus*)> RxErrorEvent = nullptr; // The event to call when a reception errors
+	std::function<void(const CanBus*)> TxStartEvent = EmptyFunction; // The event to call when a transmission starts
+	std::function<void(const CanBus*)> TxEndEvent   = EmptyFunction; // The event to call when a transmission completes
+	std::function<void(const CanBus*)> TxErrorEvent = EmptyFunction; // The event to call when a transmission errors
+	std::function<void(const CanBus*)> RxStartEvent = EmptyFunction; // The event to call when a reception starts
+	std::function<void(const CanBus*)> RxEndEvent   = EmptyFunction; // The event to call when a reception completes
+	std::function<void(const CanBus*)> RxErrorEvent = EmptyFunction; // The event to call when a reception errors
 
   public:
 	CanBus() : _interface(nullptr), _fifo0Callbacks(), _fifo1Callbacks() {}
@@ -329,13 +331,13 @@ class CanBus
 	 */
 	~CanBus()
 	{
-		for (auto it = RegisteredInterfaces.begin(); it != RegisteredInterfaces.end(); it++)
-		{
-			if (std::get<0>(*it) == this)
-			{
-				RegisteredInterfaces.erase(it);
-			}
-		}
+//		for (auto it = RegisteredInterfaces.begin(); it != RegisteredInterfaces.end(); it++)
+//		{
+//			if (std::get<0>(*it) == this)
+//			{
+//				RegisteredInterfaces.erase(it);
+//			}
+//		}
 	}
 };
 
