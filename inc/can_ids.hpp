@@ -25,6 +25,7 @@ struct CanType
 	static constexpr uint8_t DISTRIBUTION     = 0x4;
 	static constexpr uint8_t PERIPHERALS      = 0x5;
 	static constexpr uint8_t STEERING         = 0x6;
+	static constexpr uint8_t TELEMETRY        = 0x7;
 	static constexpr uint8_t GENERIC          = 0x1F;
 };
 
@@ -36,6 +37,7 @@ struct CanIdBase
 	static constexpr uint8_t DISPLAY          = CanType::DISPLAY << 4;
 	static constexpr uint8_t DISTRIBUTION     = CanType::DISTRIBUTION << 4;
 	static constexpr uint8_t PERIPHERALS      = CanType::PERIPHERALS << 4;
+	static constexpr uint8_t TELEMETRY        = CanType::TELEMETRY << 4;
 	static constexpr uint8_t STEERING         = CanType::STEERING << 4;
 };
 
@@ -56,7 +58,7 @@ struct GenericMessage
 	static constexpr uint8_t ERRORS_2 = 0x22;
 	static constexpr uint8_t ERRORS_3 = 0x23;
 
-	static constexpr uint8_t RESET    = 0x3F;
+	static constexpr uint8_t RESET = 0x3F;
 };
 
 } // namespace PSR

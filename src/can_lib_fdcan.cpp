@@ -103,7 +103,7 @@ static void PrintFrameInfo(const PSR::CanBus::Frame& frame, const char* prefix)
 
 bool CanBus::Transmit(const Frame& frame) const
 {
-	constexpr uint32_t timeout = 60000;
+	constexpr uint32_t timeout = 20;
 
 	this->TxStartEvent(this);
 	FDCAN_TxHeaderTypeDef txHeader;
@@ -240,7 +240,7 @@ bool CanBus::AddRxCallback(Callback callback, const Filter& filter, uint32_t fif
 
 		fdcanFilter.IdType       = FDCAN_STANDARD_ID;
 		fdcanFilter.FilterIndex  = currentFilterIndex;
-		fdcanFilter.FilterConfig = fifo == CanBus::RX_FIFO0 ? FDCAN_FILTER_TO_RXFIFO0 : FDCAN_FILTER_TO_RXFIFO1;
+		fdcanFilter.FilterConfig = fifo == CanBus::RX_FIFO0 ? FDCAN_FILTER_TO_RXFIFO0_HP : FDCAN_FILTER_TO_RXFIFO1_HP;
 	}
 	else
 	{

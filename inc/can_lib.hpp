@@ -184,6 +184,11 @@ class CanBus
 			return CanId(value);
 		}
 
+		static constexpr uint32_t FromParts(uint8_t dst, uint8_t src, uint8_t message, uint8_t type, uint8_t priority)
+		{
+			return CanId(dst, src, message, type, priority).Value;
+		}
+
 		static constexpr CanId DstMask()
 		{
 			CanId id = {0};
@@ -241,6 +246,11 @@ class CanBus
 			CanId id = { 0 };
 			id.Value = Value & other.Value;
 			return id;
+		}
+
+		constexpr operator uint32_t() const
+		{
+			return Value;
 		}
 	};
 
