@@ -87,6 +87,7 @@ bool CanBus::Init()
 
 static void PrintFrameInfo(const PSR::CanBus::Frame& frame, const char* prefix)
 {
+	#ifdef PRINT_DEBUG
 	printf("CAN %s: (",  prefix);
 
 	if (frame.IsExtended)
@@ -99,6 +100,7 @@ static void PrintFrameInfo(const PSR::CanBus::Frame& frame, const char* prefix)
 		printf(" %X%X", frame.Data.Bytes[i] >> 4, frame.Data.Bytes[i] & 0xF);
 
 	printf(")\n");
+	#endif
 }
 
 bool CanBus::Transmit(const Frame& frame) const
