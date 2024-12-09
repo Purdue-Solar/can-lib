@@ -13,7 +13,10 @@
 #else
 
 #include "can_lib.hpp"
+
+#include "errors.hpp"
 #include "interrupt_queue.hpp"
+
 #include <cmath>
 #ifdef PRINT_DEBUG
 #include <cstdio>
@@ -54,12 +57,18 @@ bool CanBus::Init()
 	if (!this->_fifo0Callbacks.empty())
 	{
 		if (HAL_FDCAN_ActivateNotification(this->_interface, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
+		{
+			ErrorMessage::SetMessage("CanBus: Failed to activate FIFO0 notification\n");
 			return false;
+		}
 	}
 	if (!this->_fifo1Callbacks.empty())
 	{
 		if (HAL_FDCAN_ActivateNotification(this->_interface, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0) != HAL_OK)
+		{
+			ErrorMessage::SetMessage("CanBus: Failed to activate FIFO1 notification\n");
 			return false;
+		}
 	}
 
 	this->_interface->RxFifo0Callback = CanBus::RxCallbackFifo0;
@@ -72,11 +81,20 @@ bool CanBus::Init()
 	this->_interface->Init.ExtFiltersNbr = 0;
 
 	if (HAL_FDCAN_Init(this->_interface) != HAL_OK)
+	{
+		ErrorMessage::SetMessage("CanBus: Failed to initialize\n");
 		return false;
-	 if (HAL_FDCAN_ConfigGlobalFilter(this->_interface, FDCAN_REJECT, FDCAN_REJECT, FDCAN_REJECT_REMOTE, FDCAN_REJECT_REMOTE) != HAL_OK)
-	 	return false;
+	}
+	if (HAL_FDCAN_ConfigGlobalFilter(this->_interface, FDCAN_REJECT, FDCAN_REJECT, FDCAN_REJECT_REMOTE, FDCAN_REJECT_REMOTE) != HAL_OK)
+	{
+		ErrorMessage::SetMessage("CanBus: Failed to configure global filter\n");
+		return false;
+	}
 	if (HAL_FDCAN_Start(this->_interface) != HAL_OK)
+	{
+		ErrorMessage::SetMessage(("CanBus: Failed to start\n"));
 		return false;
+	}
 
 #ifdef PRINT_DEBUG
 	printf("\tInitialized CanBus.\n");
@@ -87,8 +105,8 @@ bool CanBus::Init()
 
 static void PrintFrameInfo(const PSR::CanBus::Frame& frame, const char* prefix)
 {
-	#ifdef PRINT_DEBUG
-	printf("CAN %s: (",  prefix);
+#ifdef PRINT_DEBUG
+	printf("CAN %s: (", prefix);
 
 	if (frame.IsExtended)
 		printf("Id: %8lX, ", frame.Id);
@@ -100,7 +118,7 @@ static void PrintFrameInfo(const PSR::CanBus::Frame& frame, const char* prefix)
 		printf(" %X%X", frame.Data.Bytes[i] >> 4, frame.Data.Bytes[i] & 0xF);
 
 	printf(")\n");
-	#endif
+#endif
 }
 
 bool CanBus::Transmit(const Frame& frame) const
@@ -119,7 +137,10 @@ bool CanBus::Transmit(const Frame& frame) const
 	{
 		uint32_t tick = HAL_GetTick();
 		if ((tick - tickStart) > timeout)
+		{
+			ErrorMessage::SetMessage("CanBus: Timeout waiting for free TX FIFO\n");
 			return false;
+		}
 	}
 
 	txHeader.Identifier          = frame.Id & (frame.IsExtended ? CanBus::EXT_ID_MASK : CanBus::STD_ID_MASK);
@@ -185,7 +206,7 @@ bool CanBus::Receive(CanBus::Frame& frame) const
 	else
 	{
 #ifdef PRINT_DEBUG
-	PrintFrameInfo(frame, "RX");
+		PrintFrameInfo(frame, "RX");
 #endif
 	}
 
@@ -314,8 +335,8 @@ void CanBus::RxCallback(CanBus::Interface* hcan, uint32_t fifo)
 					{
 						if (callback.FilterNumber == frame.FilterIndex && callback.IsExtended == frame.IsExtended)
 						{
-							auto function = [canbus, frame, callback]() {callback.Function(canbus, frame);};
-							InterruptQueue::AddInterrupt(Interrupt(function, HAL_GetTick(), "CAN FIFO 0 Interrupt", true));
+							auto function = [canbus, frame, callback]() { callback.Function(canbus, frame); };
+							InterruptQueue::AddInterrupt(function);
 						}
 					}
 				}
@@ -325,8 +346,8 @@ void CanBus::RxCallback(CanBus::Interface* hcan, uint32_t fifo)
 					{
 						if (callback.FilterNumber == frame.FilterIndex && callback.IsExtended == frame.IsExtended)
 						{
-							auto function = [canbus, frame, callback]() {callback.Function(canbus, frame);};
-							InterruptQueue::AddInterrupt(Interrupt(function, HAL_GetTick(), "CAN FIFO 1 Interrupt", true));
+							auto function = [canbus, frame, callback]() { callback.Function(canbus, frame); };
+							InterruptQueue::AddInterrupt(function);
 						}
 					}
 				}

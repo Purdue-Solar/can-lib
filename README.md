@@ -3,6 +3,7 @@
 ### Supported Microcontrollers
  - STM32F series (bxCAN)
  - STM32G series
+ - STM32U series
  - STM32H series
 
 # Installation
@@ -48,4 +49,5 @@ $ gcc <...> -DSTM32_PROCESSOR=f4 <...>
 | ----------------- | --------------------------------- |
 | STM32Fx			| `#define STM32_PROCESSOR fx`		|
 | STM32Gx			| `#define STM32_PROCESSOR gx`		|
+| STM32Ux			| `#define STM32_PROCESSOR ux`		|
 | STM32Hx			| `#define STM32_PROCESSOR hx`		|
